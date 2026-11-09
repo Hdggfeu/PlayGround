@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f5f2"><meta name="description" content="Un atelier privé pour imaginer des personnages IA et discuter en français ou en anglais.">
+  <title>Murmure — votre atelier privé</title>
+  <link rel="icon" href="data:,">
+  <link rel="preload" href="assets/fonts/manrope.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/instrument-serif.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" aria-label="Murmure accueil"><span class="brand-mark"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 22c4-1 5-11 11-11s7 10 11 11M8 26c3-1 5-5 8-5s5 4 8 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="8" r="2" fill="currentColor"/></svg></span><span class="brand-name">murmure<span class="brand-period">.</span><small>ATELIER PRIVÉ</small></span></a>
+      <button class="mobile-close icon-btn" id="close-sidebar" aria-label="Fermer le menu">×</button>
+      <div class="sidebar-label" data-i18n="workspace">VOTRE ESPACE</div>
+      <button class="side-link active" data-view="chat"><span class="nav-icon">◌</span><span data-i18n="conversations">Conversations</span><span class="side-count" id="chat-count">3</span></button>
+      <button class="side-link" data-view="characters"><span class="nav-icon">✳</span><span data-i18n="myCharacters">Mes personnages</span></button>
+      <div class="side-divider"></div>
+      <div class="section-row"><div class="sidebar-label" data-i18n="yourCast">VOTRE CASTING</div><button class="tiny-add" id="quick-create" aria-label="Créer un personnage">+</button></div>
+      <div class="character-list" id="character-list"></div>
+      <button class="create-sidebar" id="create-character"><span>＋</span><span data-i18n="createCharacter">Créer un personnage</span></button>
+      <div class="sidebar-bottom">
+        <div class="privacy-mini"><span class="privacy-dot"></span><div><b data-i18n="privateSpace">Espace privé</b><small data-i18n="onlyYou">Visible uniquement par vous</small></div><span class="lock-icon">⌑</span></div>
+        <button class="profile-button" id="open-vault"><span class="user-avatar">A</span><span class="profile-meta"><b id="profile-name">Alex Morgan</b><small data-i18n="localProfile">Profil local</small></span><span class="dots">···</span></button>
+      </div>
+    </aside>
+    <div class="sidebar-scrim" id="scrim"></div>
+    <main class="main-area">
+      <header class="topbar">
+        <button class="mobile-menu icon-btn" id="menu-button" aria-label="Ouvrir le menu">☰</button>
+        <div class="breadcrumb"><span data-i18n="privateStudio">Studio privé</span><span class="crumb-slash">/</span><span id="crumb-active">Conversations</span></div>
+        <div class="top-actions"><span class="top-private"><span class="privacy-dot"></span><span data-i18n="everythingPrivate">Tout est privé</span></span><button class="language-toggle" id="language-toggle"><span class="lang-globe">◎</span><span id="language-label">FR</span><span class="chevron">⌄</span></button><button class="icon-btn help-btn" id="open-tutorial" aria-label="Aide">?</button></div>
+      </header>
+      <section class="view active" id="chat-view">
+        <div class="chat-layout">
+          <div class="chat-column">
+            <div class="chat-head"><div class="chat-person"><div class="avatar avatar-large" id="chat-avatar"></div><div><div class="person-title"><h1 id="chat-name">Éloïse</h1><span class="online-dot"></span><span class="online-text" data-i18n="readyToChat">prête à discuter</span></div><p id="chat-tagline">Photographe rêveuse · Paris</p></div></div><div class="head-tools"><button class="icon-btn" id="clear-chat" aria-label="Effacer la conversation" title="Effacer la conversation">↺</button><button class="more-button" id="character-menu">···</button></div></div>
+            <div class="chat-scene" id="chat-scene"><div class="date-divider"><span data-i18n="today">AUJOURD'HUI</span><i></i></div><div id="messages"></div><div class="typing-indicator hidden" id="typing-indicator"><span class="typing-avatar" id="typing-avatar"></span><span id="typing-label">Éloïse écrit</span><i></i><i></i><i></i></div></div>
+            <div class="chat-footer"><div class="prompt-row" id="prompt-row"></div><form class="composer" id="chat-form"><button class="attach-button" type="button" id="attach-button" aria-label="Options">＋</button><textarea id="message-input" rows="1" placeholder="Écrivez votre message…" data-placeholder="composerPlaceholder" aria-label="Votre message"></textarea><div class="composer-end"><span class="enter-hint">↵</span><button class="send-button" type="submit" aria-label="Envoyer le message"><svg viewBox="0 0 24 24"><path d="M5 12h13M12 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></form><div class="safety-note"><span>✦</span><span data-i18n="safetyNote">Les échanges restent dans votre espace privé.</span><span class="safety-link" id="safety-link" data-i18n="guidelines">Règles de contenu</span></div></div>
+          </div>
+          <aside class="detail-panel"><div class="detail-cover" id="detail-cover"><div class="cover-badge"><span>✳</span> <span data-i18n="yourCharacter">VOTRE PERSONNAGE</span></div><button class="edit-character" id="edit-character">✎ <span data-i18n="edit">Modifier</span></button></div><div class="detail-content"><div class="detail-title-row"><div><h2 id="detail-name">Éloïse</h2><p id="detail-role">Photographe rêveuse</p></div><span class="private-tag"><span class="privacy-dot"></span><span data-i18n="private">Privé</span></span></div><p class="detail-bio" id="detail-bio"></p><div class="detail-divider"></div><div class="detail-section-title" data-i18n="personality">SA PERSONNALITÉ</div><div class="trait-list" id="trait-list"></div><div class="detail-divider"></div><div class="detail-section-title" data-i18n="conversationStyle">STYLE DE CONVERSATION</div><p class="style-note" id="style-note"></p><div class="detail-spacer"></div><div class="data-note"><span class="data-note-icon">⌑</span><span data-i18n="privateCharacterNote">Ce personnage et vos échanges ne sont visibles que par vous.</span></div></div></aside>
+        </div>
+      </section>
+      <section class="view" id="characters-view"><div class="library-page"><div class="page-heading"><div><div class="eyebrow" data-i18n="yourImaginaryWorld">VOTRE MONDE IMAGINAIRE</div><h1 data-i18n="characterLibrary">Bibliothèque <em>personnelle</em></h1><p data-i18n="librarySubtitle">Tous les personnages que vous avez imaginés, réunis ici.</p></div><button class="primary-button" id="library-create">＋ <span data-i18n="newCharacter">Nouveau personnage</span></button></div><div class="library-tools"><div class="search-box"><span>⌕</span><input id="character-search" placeholder="Rechercher un personnage…" data-placeholder="searchPlaceholder"></div><div class="sort-label"><span data-i18n="privateCollection">COLLECTION PRIVÉE</span><span>✳</span></div></div><div class="library-grid" id="library-grid"></div><div class="empty-library hidden" id="empty-library"><span>✳</span><h2 data-i18n="emptyLibrary">Une page blanche, mille possibilités.</h2><p data-i18n="emptyLibraryNote">Créez un personnage à votre image et commencez une conversation.</p><button class="primary-button" id="empty-create">＋ <span data-i18n="createFirst">Créer mon premier personnage</span></button></div></div></section>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status"></div>
+  <div class="modal-backdrop hidden" id="modal-backdrop"><div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title"><button class="modal-close icon-btn" id="modal-close" aria-label="Fermer">×</button><div id="modal-content"></div></div></div>
+  <script src="js/app.js"></script>
+</body>
+</html>
