@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PokeWorld MMO</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="game-shell">
+      <canvas id="gameCanvas" width="1280" height="720"></canvas>
+
+      <div id="start-screen" class="overlay visible">
+        <div class="panel intro-panel">
+          <p class="eyebrow">AI Special Studio</p>
+          <h1>PokeWorld MMO</h1>
+          <p>
+            Explore the wildlands, talk to trainers, capture creatures, and complete
+            the guild quest in this English-language Pokémon-inspired 2D adventure.
+          </p>
+          <button id="start-btn">Start Adventure</button>
+        </div>
+      </div>
+
+      <div id="battle-screen" class="overlay hidden">
+        <div class="panel battle-panel">
+          <div class="battle-header">
+            <div>
+              <p class="eyebrow">Wild Encounter</p>
+              <h2 id="enemy-name">Creature</h2>
+            </div>
+            <div class="enemy-hp-wrap">
+              <span>HP</span>
+              <div class="hp-bar">
+                <div id="enemy-hp-fill" class="hp-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="battle-sprite-wrap">
+            <div id="enemy-sprite" class="battle-sprite"></div>
+          </div>
+
+          <div id="battle-log" class="battle-log"></div>
+
+          <div class="battle-actions">
+            <button data-action="attack">Strike</button>
+            <button data-action="heal">Potion</button>
+            <button data-action="capture">Pokéball</button>
+            <button data-action="run">Run</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="hud" class="hud hidden">
+        <div class="top-row">
+          <div class="card stats">
+            <h3>Trainer</h3>
+            <p><span id="player-name">Astra</span></p>
+            <p>Level <span id="player-level">1</span></p>
+            <p>Health <span id="player-health">100</span> / 100</p>
+            <p>Coins <span id="coin-count">0</span></p>
+          </div>
+
+          <div class="card quest-card">
+            <h3>Quest</h3>
+            <p id="quest-text">Talk to the town guide.</p>
+          </div>
+
+          <div class="card world-card">
+            <h3>World</h3>
+            <p>Players online: <span id="online-count">24</span></p>
+            <p>Region: <span id="region-name">Brightwood</span></p>
+          </div>
+        </div>
+
+        <div class="bottom-row">
+          <div class="card party-card">
+            <h3>Party</h3>
+            <div id="party-list"></div>
+          </div>
+
+          <div class="card inventory-card">
+            <h3>Bag</h3>
+            <div class="bag-grid">
+              <div>Pokéballs <span id="ball-count">4</span></div>
+              <div>Potions <span id="potion-count">3</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="message-box" class="message-box hidden"></div>
+
+      <div id="touch-controls" class="touch-controls hidden">
+        <div class="dpad">
+          <button data-move="up">▲</button>
+          <button data-move="left">◀</button>
+          <button data-move="down">▼</button>
+          <button data-move="right">▶</button>
+        </div>
+        <button id="touch-action" class="action-button">Talk</button>
+      </div>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>

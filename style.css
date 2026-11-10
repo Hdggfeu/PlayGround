@@ -1,0 +1,331 @@
+:root {
+  --bg: #10181a;
+  --panel: rgba(16, 24, 26, 0.85);
+  --panel-border: rgba(255, 255, 255, 0.1);
+  --gold: #f3d96b;
+  --green: #7bd690;
+  --red: #ff5d6d;
+  --blue: #67b9ff;
+  --text: #f0f6ff;
+  --muted: #b7c7d9;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: linear-gradient(180deg, #0d1718 0%, #1d2a25 100%);
+  color: var(--text);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+body {
+  display: grid;
+  place-items: center;
+}
+
+#game-shell {
+  position: relative;
+  width: min(100vw, 1280px);
+  height: min(100vh, 720px);
+  border: 2px solid rgba(255,255,255,0.08);
+  background: #111;
+  overflow: hidden;
+  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+}
+
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #87d2ff 0%, #c8f0ff 55%, #d9f5c2 100%);
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(5, 9, 14, 0.42);
+  backdrop-filter: blur(2px);
+}
+
+.overlay.hidden,
+.hud.hidden,
+.message-box.hidden,
+.touch-controls.hidden {
+  display: none;
+}
+
+.panel {
+  background: rgba(10, 17, 19, 0.86);
+  border: 1px solid var(--panel-border);
+  border-radius: 20px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+}
+
+.intro-panel {
+  width: min(90%, 540px);
+  padding: 2.2rem 2rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  font-size: 0.7rem;
+}
+
+h1, h2, h3, p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  margin-bottom: 1rem;
+}
+
+button {
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #75d2ff, #44a8ef);
+  color: #062338;
+  font-weight: 700;
+  padding: 0.8rem 1.2rem;
+  cursor: pointer;
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+button:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+.battle-panel {
+  width: min(90%, 560px);
+  padding: 1.2rem;
+}
+
+.battle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.enemy-hp-wrap {
+  width: 180px;
+}
+
+.hp-bar {
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+
+.hp-fill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #4ade80, #8ef0a5);
+  transition: width 0.2s ease;
+}
+
+.battle-sprite-wrap {
+  padding: 2rem 0 1rem;
+  display: grid;
+  place-items: center;
+}
+
+.battle-sprite {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(234, 244, 255, 0.1) 35%, rgba(16,24,26,0.8) 36%), linear-gradient(135deg, #8fd16c, #6bb36f);
+  border: 5px solid rgba(255,255,255,0.2);
+  box-shadow: 0 25px 40px rgba(0,0,0,0.25);
+  position: relative;
+}
+
+.battle-sprite::before,
+.battle-sprite::after {
+  content: "";
+  position: absolute;
+  inset: auto;
+  background: rgba(28, 36, 42, 0.8);
+}
+
+.battle-sprite::before {
+  width: 22px;
+  height: 22px;
+  left: 36px;
+  top: 42px;
+  border-radius: 50%;
+}
+
+.battle-sprite::after {
+  width: 22px;
+  height: 22px;
+  right: 36px;
+  top: 42px;
+  border-radius: 50%;
+}
+
+.battle-log {
+  min-height: 74px;
+  background: rgba(11, 18, 22, 0.8);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  color: var(--muted);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.battle-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  padding: 1rem;
+}
+
+.top-row,
+.bottom-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(140px, 1fr));
+  gap: 1rem;
+}
+
+.bottom-row {
+  margin-top: 1rem;
+  grid-template-columns: 1.5fr 1fr;
+}
+
+.card {
+  background: rgba(9, 17, 20, 0.72);
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  backdrop-filter: blur(2px);
+  pointer-events: auto;
+}
+
+.card h3 {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+  color: var(--gold);
+}
+
+.card p {
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+}
+
+.party-card {
+  min-height: 100px;
+}
+
+#party-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pokemon-tag {
+  background: rgba(123, 214, 144, 0.18);
+  border: 1px solid rgba(123, 214, 144, 0.35);
+  border-radius: 999px;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.bag-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.message-box {
+  position: absolute;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  min-width: min(72vw, 420px);
+  text-align: center;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  background: rgba(12, 20, 22, 0.9);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text);
+}
+
+.touch-controls {
+  position: absolute;
+  inset: auto 0 0 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  padding: 1rem;
+  pointer-events: none;
+}
+
+.dpad {
+  display: grid;
+  grid-template-columns: repeat(3, 52px);
+  grid-template-rows: repeat(3, 52px);
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.dpad button {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.4rem;
+}
+
+.dpad button:nth-child(1) { grid-column: 2; grid-row: 1; }
+.dpad button:nth-child(2) { grid-column: 1; grid-row: 2; }
+.dpad button:nth-child(3) { grid-column: 2; grid-row: 2; }
+.dpad button:nth-child(4) { grid-column: 3; grid-row: 2; }
+
+.action-button {
+  pointer-events: auto;
+  width: 118px;
+  height: 52px;
+  font-size: 1rem;
+}
+
+@media (max-width: 720px) {
+  .top-row,
+  .bottom-row {
+    grid-template-columns: 1fr;
+  }
+
+  .hud {
+    padding: 0.5rem;
+  }
+
+  .card {
+    padding: 0.75rem 0.85rem;
+  }
+}
