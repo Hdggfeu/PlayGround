@@ -26,8 +26,8 @@
     started=true; paused=false; gameOver=false; round=1; playerWins=0; enemyWins=0; resetRound(); setCallout('FIGHT!');
   }
   function resetRound() {
-    player.x=282;player.y=GROUND;player.vx=0;player.vy=0;player.facing=1;player.health=100;player.meter=0;player.state='idle';player.stateTime=0;player.attack=null;player.invuln=0;player.cooldown=0;player.block=false;
-    enemy.x=678;enemy.y=GROUND;enemy.vx=0;enemy.vy=0;enemy.facing=-1;enemy.health=100;enemy.meter=0;enemy.state='idle';enemy.stateTime=0;enemy.attack=null;enemy.invuln=0;enemy.cooldown=0;enemy.aiWait=.7+Math.random()*.6;
+    player.x=282;player.y=GROUND;player.vx=0;player.vy=0;player.facing=1;player.health=100;player.meter=0;player.state='idle';player.stateTime=0;player.attack=null;player.attackHit=false;player.projectileFired=false;player.invuln=0;player.cooldown=0;player.flash=0;player.block=false;player.crouch=false;
+    enemy.x=678;enemy.y=GROUND;enemy.vx=0;enemy.vy=0;enemy.facing=-1;enemy.health=100;enemy.meter=0;enemy.state='idle';enemy.stateTime=0;enemy.attack=null;enemy.attackHit=false;enemy.projectileFired=false;enemy.invuln=0;enemy.cooldown=0;enemy.flash=0;enemy.block=false;enemy.crouch=false;enemy.aiWait=.7+Math.random()*.6;
     timer=60;timerTick=0;projectiles.length=0;particles.length=0;effects.length=0;combo=0;comboTimer=0;updateHud();
   }
   function updateHud() {
@@ -45,7 +45,7 @@
     f.block=false; f.state=special?'special':'attack'; f.stateTime=0;f.attackHit=false;f.attack=kind;
     const durations={jab:.27,kick:.43,bolt:.55,rising:.63,phase:.48};
     f.attackDuration=durations[kind]||.3; f.cooldown=kind==='bolt'?.8:kind==='rising'?.9:kind==='phase'?.8:.12;
-    if(kind==='bolt') { setTimeout(()=>{if(started&&!paused) launchProjectile(f);},130); beep(340,.11,'sawtooth'); }
+    if(kind==='bolt') { f.projectileFired=false; beep(340,.11,'sawtooth'); }
     if(kind==='rising') { f.vy=-570;f.invuln=.26;spawnBurst(f.x,f.y-65,f.type==='kai'?'#ffcd70':'#a998ff',14);shake=7;beep(225,.2,'sawtooth'); }
     if(kind==='phase') {f.vx=f.facing*600;f.invuln=.32;f.specialTrail=[];spawnBurst(f.x,f.y-45,f.type==='kai'?'#66eee0':'#ff7395',10);beep(510,.15,'triangle');}
     if(kind==='jab'||kind==='kick') beep(kind==='jab'?150:110,.07,'square',.02);
@@ -86,6 +86,7 @@
     player.crouch=held.has('s')&&!moving;
     if(player.attack){
       player.stateTime+=dt; attackCheck(player,enemy);
+      if(player.attack==='bolt'&&!player.projectileFired&&player.stateTime>=.16){player.projectileFired=true;launchProjectile(player);}
       if(player.attack==='phase'&&player.stateTime<.28)player.vx=player.facing*540;
       if(player.stateTime>=player.attackDuration){player.attack=null;player.state='idle';player.vx*=.25;}
     } else if(!player.block&&player.state!=='hurt'&&player.state!=='ko') {
@@ -102,7 +103,7 @@
   function enemyUpdate(dt) {
     if(enemy.health<=0)return;
     enemy.facing=enemy.x<player.x?1:-1;
-    if(enemy.attack){enemy.stateTime+=dt;attackCheck(enemy,player);if(enemy.attack==='phase'&&enemy.stateTime<.28)enemy.vx=enemy.facing*510;if(enemy.stateTime>=enemy.attackDuration){enemy.attack=null;enemy.state='idle';enemy.vx*=.2;}}
+    if(enemy.attack){enemy.stateTime+=dt;attackCheck(enemy,player);if(enemy.attack==='bolt'&&!enemy.projectileFired&&enemy.stateTime>=.16){enemy.projectileFired=true;launchProjectile(enemy);}if(enemy.attack==='phase'&&enemy.stateTime<.28)enemy.vx=enemy.facing*510;if(enemy.stateTime>=enemy.attackDuration){enemy.attack=null;enemy.state='idle';enemy.vx*=.2;}}
     else if(enemy.state==='hurt'||enemy.state==='block'){enemy.stateTime+=dt;if(enemy.stateTime>.3){enemy.state='idle';enemy.vx*=.2;}}
     else {
       enemy.aiWait-=dt;const dist=Math.abs(player.x-enemy.x), dir=Math.sign(player.x-enemy.x);
@@ -110,6 +111,7 @@
         if(dist>320&&enemy.meter>=34&&Math.random()<.54)action(enemy,'bolt');
         else if(dist<145){const r=Math.random();if(enemy.meter>=34&&r<.18)action(enemy,'rising');else if(enemy.meter>=34&&r<.31)action(enemy,'phase');else if(r<.55)action(enemy,'kick');else action(enemy,'jab');}
         else if(dist<285&&enemy.meter>=34&&Math.random()<.3)action(enemy,'bolt');
+        else if(dist<245&&enemy.y>=GROUND-1&&Math.random()<.14){enemy.vy=-410;enemy.state='air';}
         else if(dist<245){enemy.vx=dir*(105+Math.random()*65);enemy.state='walk';}
         else {enemy.vx=dir*160;enemy.state='walk';}
         enemy.aiWait=.42+Math.random()*.55;
