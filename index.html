@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#10131e">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23ff4d61'/%3E%3Ctext x='7' y='44' font-family='sans-serif' font-size='35' font-weight='900' fill='%23111421'%3ENR%3C/text%3E%3C/svg%3E">
+  <title>Neon Rivals — Last Train Showdown</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="cabinet">
+    <header class="topline">
+      <a class="brand" href="#" aria-label="Neon Rivals home"><span class="brand-mark">NR</span><span>NEON<span class="brand-light">RIVALS</span></span></a>
+      <div class="edition"><i></i> ARCADE EDITION <span>01 / 03</span></div>
+      <button class="sound-toggle" id="soundToggle" aria-label="Toggle sound">♫ <span>SOUND ON</span></button>
+    </header>
+
+    <section class="game-shell" aria-label="Neon Rivals fighting game">
+      <div class="game-screen">
+        <canvas id="game" width="960" height="540" aria-label="Fighting game arena"></canvas>
+        <div class="hud">
+          <div class="fighter-hud player-hud">
+            <div class="name-row"><span class="fighter-name">KAI <b>「THE COMET」</b></span><span class="wins" id="playerWins">●○○</span></div>
+            <div class="health-track"><div class="health-fill player-health" id="playerHealth"></div><span class="health-glint"></span></div>
+            <div class="meter-track"><div id="playerMeter" class="meter-fill"></div></div>
+          </div>
+          <div class="round-clock"><span>ROUND</span><b id="timer">60</b><small>FINAL</small></div>
+          <div class="fighter-hud enemy-hud">
+            <div class="name-row"><span class="wins" id="enemyWins">○○●</span><span class="fighter-name">VEX <b>「NIGHTFALL」</b></span></div>
+            <div class="health-track"><div class="health-fill enemy-health" id="enemyHealth"></div><span class="health-glint"></span></div>
+            <div class="meter-track"><div id="enemyMeter" class="meter-fill"></div></div>
+          </div>
+        </div>
+        <div class="round-callout" id="callout"><span>THE LAST TRAIN</span><b>FIGHT!</b></div>
+        <div class="impact-flash" id="impactFlash"></div>
+        <div class="screen-vignette"></div>
+        <div class="screen-label"><span>UNDERCITY · 11:47 PM</span><span>STAGE 01 — PLATFORM ZERO</span></div>
+      </div>
+      <div class="game-footer">
+        <div class="round-status"><span class="live-dot"></span><span id="statusText">ROUND 1 · FIRST TO TWO</span></div>
+        <div class="combo-readout" id="comboReadout"></div>
+        <button id="pauseButton" class="pause-button"><span>Ⅱ</span> PAUSE</button>
+      </div>
+    </section>
+
+    <section class="controls-info">
+      <div class="control-group movement"><div class="section-kicker">YOUR FIGHTER <span>PLAYER 01</span></div><div class="control-line"><kbd>A</kbd><kbd>D</kbd><span>MOVE</span><kbd class="key-tall">W</kbd><span>JUMP</span><kbd>S</kbd><span>BLOCK</span></div></div>
+      <div class="control-group attacks"><div class="section-kicker">ATTACK <span>BUILD YOUR COMBO</span></div><div class="control-line"><kbd>J</kbd><span>JAB</span><kbd>K</kbd><span>KICK</span></div></div>
+      <div class="control-group specials"><div class="section-kicker">SPECIALS <span>SPEND THE METER</span></div><div class="special-list"><span><b>Q</b> COMET BOLT</span><span><b>U</b> SKY BREAKER</span><span><b>I</b> PHASE SHIFT</span></div></div>
+    </section>
+
+    <section class="mobile-controls" aria-label="Touch controls">
+      <div class="touch-cluster move-cluster"><button data-key="a" aria-label="Move left">◀</button><button data-key="d" aria-label="Move right">▶</button><button data-key="w" aria-label="Jump">▲</button><button data-key="s" aria-label="Block">⬟</button></div>
+      <div class="touch-cluster attack-cluster"><button data-key="j" class="touch-attack">JAB</button><button data-key="k" class="touch-attack">KICK</button><button data-key="q" class="touch-special">Q</button><button data-key="u" class="touch-special">U</button><button data-key="i" class="touch-special">I</button></div>
+    </section>
+    <footer class="page-footer"><span>NO CONTINUES. NO MERCY.</span><span>© 199X NEON RIVALS FIGHTING LEAGUE</span><button id="howButton">HOW TO PLAY ↗</button></footer>
+  </main>
+
+  <div class="modal is-visible" id="startModal">
+    <div class="modal-card intro-card"><div class="modal-topline"><span>UNDERCITY FIGHTING LEAGUE</span><span>INSERT COIN · 01</span></div><div class="modal-logo">NEON<br><i>RIVALS</i></div><p class="modal-subtitle">ONE PLATFORM. TWO LEGENDS. NO WAY OUT.</p><div class="versus-line"><span>KAI</span><b>VS</b><span>VEX</span></div><button id="startButton" class="primary-button">ENTER THE ARENA <span>↗</span></button><p class="modal-footnote">WASD + J/K/Q/U/I &nbsp;·&nbsp; OR TOUCH CONTROLS</p></div>
+  </div>
+  <div class="modal" id="pauseModal"><div class="modal-card small-card"><div class="modal-topline"><span>TIME OUT</span><span>⏸</span></div><h2>TAKE A BREATHER.</h2><p>The train can wait. The rival won't.</p><button id="resumeButton" class="primary-button">BACK TO FIGHT <span>↗</span></button></div></div>
+  <div class="modal" id="howModal"><div class="modal-card small-card"><div class="modal-topline"><span>FIELD NOTES</span><button class="close-modal" data-close="howModal">✕</button></div><h2>MAKE IT COUNT.</h2><p>Land hits to charge your special meter. Spend one bar for a Comet Bolt (Q), Sky Breaker (U), or Phase Shift (I). Block with S and watch for the opening.</p><button class="primary-button" data-close="howModal">GOT IT <span>↗</span></button></div></div>
+  <div class="modal" id="resultModal"><div class="modal-card small-card"><div class="modal-topline"><span>ROUND COMPLETE</span><span>FIGHT DATA</span></div><div id="resultTitle" class="result-title">KAI WINS</div><p id="resultDetail">The night belongs to you.</p><button id="rematchButton" class="primary-button">RUN IT BACK <span>↻</span></button></div></div>
+  <script src="game.js"></script>
+</body>
+</html>
