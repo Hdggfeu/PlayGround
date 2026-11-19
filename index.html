@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#07111e" />
+  <title>OVERDRIVE — Arena Protocol</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game-shell">
+    <canvas id="game"></canvas>
+    <div class="scanlines"></div>
+    <div class="vignette"></div>
+    <div id="hud" class="hidden">
+      <header class="topbar">
+        <div class="brand"><span class="brand-mark">◈</span><span>OVERDRIVE</span><small>ARENA PROTOCOL</small></div>
+        <div class="match-status"><span class="live-dot"></span> LIVE MATCH <span class="status-divider">/</span> <span id="match-clock">02:00</span></div>
+        <button id="pause-button" class="icon-button" aria-label="Pause">Ⅱ</button>
+      </header>
+      <div class="matchup">
+        <div class="fighter-card player-card">
+          <div class="fighter-name"><span class="team-chip cyan">YOU</span><strong id="player-name">VOLT</strong></div>
+          <div class="health-track"><div id="player-health" class="health-fill cyan-fill"></div></div>
+          <div class="fighter-meta"><span id="player-health-text">200 / 200</span><span class="ultimate-label">ULT <b id="player-ult">0%</b></span></div>
+        </div>
+        <div class="scoreboard"><span class="score" id="player-score">0</span><span class="versus">—</span><span class="score enemy-score" id="enemy-score">0</span></div>
+        <div class="fighter-card enemy-card">
+          <div class="fighter-name"><span class="team-chip red">RIVAL</span><strong id="enemy-name">BASTION</strong></div>
+          <div class="health-track"><div id="enemy-health" class="health-fill red-fill"></div></div>
+          <div class="fighter-meta"><span id="enemy-health-text">200 / 200</span><span class="round-label">FIRST TO 3</span></div>
+        </div>
+      </div>
+      <div class="crosshair"><i></i><i></i><i></i><i></i><b></b></div>
+      <div id="hit-marker" class="hit-marker">×</div>
+      <div id="center-toast" class="center-toast"></div>
+      <div id="killfeed" class="killfeed"></div>
+      <div class="bottom-left"><div class="round-tag"><span class="round-dot"></span> ROUND <b id="round-number">01</b></div><div class="map-name">THE FOUNDRY <span>·</span> SECTOR 07</div></div>
+      <div class="bottom-right">
+        <div class="ability-row">
+          <div class="ability" id="ability-dash"><div class="ability-key">SHIFT</div><div class="ability-icon">➤</div><div class="ability-info"><b>PHASE DASH</b><small id="dash-caption">READY</small></div><div class="cooldown-shade"></div></div>
+          <div class="ability" id="ability-pulse"><div class="ability-key">E</div><div class="ability-icon pulse-icon">✳</div><div class="ability-info"><b>ION PULSE</b><small id="pulse-caption">READY</small></div><div class="cooldown-shade"></div></div>
+          <div class="ability ultimate" id="ability-ult"><div class="ability-key">Q</div><div class="ability-icon">✦</div><div class="ability-info"><b>OVERDRIVE</b><small id="ult-caption">0% CHARGED</small></div></div>
+        </div>
+        <div class="ammo-row"><span class="weapon-label">ARC REPEATER <small>· AUTO</small></span><span class="ammo-count"><b id="ammo-count">24</b><i>/ 24</i></span></div>
+      </div>
+      <div class="controls-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> MOVE <span>·</span> MOUSE AIM <span>·</span> CLICK FIRE</div>
+    </div>
+    <div id="start-screen" class="screen-overlay">
+      <div class="start-content">
+        <div class="eyebrow"><span class="eyebrow-line"></span> THE ARENA IS CALLING <span class="eyebrow-line"></span></div>
+        <h1>ONE ARENA.<br><em>NO BACKUP.</em></h1>
+        <p class="intro-copy">A high-voltage duel between two legends.<br>Pick your fighter. Make every shot count.</p>
+        <div class="hero-select">
+          <button class="hero-option selected" data-hero="volt">
+            <span class="hero-number">01 / DUELIST</span><span class="hero-icon volt-icon">ϟ</span><span class="hero-label">VOLT</span><span class="hero-desc">QUICK · PRECISION</span><span class="hero-check">✓</span>
+          </button>
+          <button class="hero-option" data-hero="nova">
+            <span class="hero-number">02 / CONTROLLER</span><span class="hero-icon nova-icon">✦</span><span class="hero-label">NOVA</span><span class="hero-desc">BURST · DISRUPTION</span><span class="hero-check">✓</span>
+          </button>
+        </div>
+        <button id="start-button" class="primary-button"><span>ENTER THE ARENA</span><b>→</b></button>
+        <div class="start-footnote">WASD TO MOVE <span>·</span> MOUSE TO AIM <span>·</span> CLICK TO FIRE <span>·</span> SHIFT DASH <span>·</span> E PULSE <span>·</span> Q ULTIMATE</div>
+      </div>
+      <div class="screen-corner top-left"></div><div class="screen-corner top-right"></div><div class="screen-corner bottom-left-corner"></div><div class="screen-corner bottom-right-corner"></div>
+      <div class="screen-side-note">COMPETITIVE SIMULATION <span>—</span> BUILD 07.26</div>
+    </div>
+    <div id="pause-screen" class="screen-overlay hidden">
+      <div class="pause-content"><div class="eyebrow">MATCH PAUSED</div><h2>TAKE A BREATH.</h2><p>The arena will be right here.</p><button id="resume-button" class="primary-button"><span>BACK TO THE FIGHT</span><b>→</b></button><button id="quit-button" class="text-button">LEAVE MATCH</button></div>
+    </div>
+    <div id="end-screen" class="screen-overlay hidden">
+      <div class="pause-content"><div id="result-kicker" class="eyebrow">MATCH COMPLETE</div><h2 id="result-title">VICTORY.</h2><p id="result-copy">The arena belongs to you.</p><button id="rematch-button" class="primary-button"><span>RUN IT BACK</span><b>↻</b></button><button id="menu-button" class="text-button">CHANGE FIGHTER</button></div>
+    </div>
+    <div id="mobile-controls" class="hidden">
+      <div id="joystick"><div class="joy-base"><div class="joy-knob"></div></div></div>
+      <div class="mobile-actions"><button id="mobile-dash">⇢<small>DASH</small></button><button id="mobile-pulse">✳<small>PULSE</small></button><button id="mobile-fire">◎<small>FIRE</small></button></div>
+    </div>
+  </div>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
