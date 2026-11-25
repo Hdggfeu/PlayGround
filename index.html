@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#101611" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23101611'/%3E%3Cpath d='M4 6h24l-4 20h-5l-3-12-3 12H8z' fill='%23d8f16a'/%3E%3C/svg%3E" />
+  <title>Warzone: Last Signal</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="game-shell">
+    <canvas id="game"></canvas>
+    <div class="scanlines"></div>
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark">W</span><div><b>WARZONE</b><small>LAST SIGNAL</small></div></div>
+      <div class="match-info"><span class="live-dot"></span><span>OPERATION: DUSTFALL</span><i></i><span id="match-clock">00:00</span></div>
+      <button id="sound-btn" class="icon-btn" aria-label="Toggle sound">♪</button>
+    </header>
+    <div class="hud">
+      <div class="mission-card"><div class="eyebrow">OBJECTIVE <span>01</span></div><b>HOLD THE LINE</b><p>Eliminate hostiles. Survive the incoming waves.</p><div class="wave-row"><span>THREAT LEVEL</span><div class="threat-bars"><i></i><i></i><i></i><i></i><i></i></div><strong id="wave-number">01</strong></div></div>
+      <div class="objective-toast" id="toast">HOSTILE CONTACT</div>
+      <div class="center-reticle"><i></i><i></i><i></i><i></i><b></b><span id="hitmarker">×</span></div>
+      <div class="right-stack"><div class="compass"><span>N</span><b>⌃</b><span id="bearing">000</span><em>▴ &nbsp;▾</em></div><div class="mini-map"><div class="map-grid"></div><span class="map-player">▲</span><div id="map-enemies"></div><small>SECTOR 04 / QUARRY</small></div></div>
+      <div class="bottom-left"><div class="health-wrap"><div class="health-icon">＋</div><div class="health-copy"><span>VITALS</span><b id="health-value">100</b></div><div class="health-track"><i id="health-bar"></i></div></div><div class="armor-wrap"><span>▰</span> ARMOR <b id="armor-value">50</b><div class="armor-track"><i></i></div></div></div>
+      <div class="bottom-right"><div class="weapon-label"><span>PRIMARY WEAPON</span><b>VKR-9 <small>ASSAULT RIFLE</small></b></div><div class="ammo"><strong id="ammo-current">30</strong><span>/</span><b id="ammo-reserve">180</b></div><div class="ammo-caption">30 ROUND MAGAZINE</div><div class="reload-indicator" id="reload-indicator">RELOADING <i></i></div></div>
+      <div class="controls-hint"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> MOVE <span>·</span> <kbd>SHIFT</kbd> SPRINT <span>·</span> <kbd>R</kbd> RELOAD <span>·</span> <kbd>ESC</kbd> PAUSE</div>
+      <div id="damage-flash"></div>
+    </div>
+    <div class="overlay" id="start-screen">
+      <div class="overlay-card intro-card"><div class="season-tag"><span></span> SEASON 04 <i>•</i> LIVE DEPLOYMENT</div><div class="title-kicker">NORTH AFRICA · 03:47 AM</div><h1>LAST<br/><em>SIGNAL</em></h1><p class="intro-copy">The perimeter is compromised. Your squad is down.<br/>Hold the quarry until extraction arrives.</p><div class="intro-stats"><div><b>∞</b><span>ENDLESS WAVES</span></div><div><b>1–4</b><span>THREAT LEVEL</span></div><div><b>FPS</b><span>COMBAT MODE</span></div></div><button id="deploy-btn" class="primary-btn">DEPLOY TO COMBAT <span>→</span></button><div class="fine-print">WASD MOVE <span>·</span> MOUSE AIM <span>·</span> CLICK FIRE</div></div>
+      <div class="overlay-decoration">04 <span>•</span> 31° 38′ N &nbsp; 06° 12′ E</div>
+    </div>
+    <div class="overlay hidden" id="pause-screen"><div class="overlay-card pause-card"><div class="title-kicker">COMBAT PAUSED</div><h2>TAKE A<br/><em>BREATHER.</em></h2><p>Hostiles are frozen while you regroup.</p><button id="resume-btn" class="primary-btn">RESUME OPERATION <span>→</span></button><div class="fine-print">PRESS ESC TO RETURN TO COMBAT</div></div></div>
+    <div class="overlay hidden" id="end-screen"><div class="overlay-card pause-card"><div class="title-kicker">SIGNAL LOST</div><h2>MISSION<br/><em>FAILED.</em></h2><p>You held out for <b id="final-time">00:00</b> and cleared <b id="final-wave">0</b> waves.</p><button id="retry-btn" class="primary-btn">REDEPLOY <span>→</span></button></div></div>
+    <div class="touch-controls" id="touch-controls"><div class="move-pad"><span>MOVE</span><div class="stick" id="move-stick"><i></i></div></div><div class="touch-actions"><button id="touch-reload">↻<small>RELOAD</small></button><button id="touch-fire">◎<small>FIRE</small></button><button id="touch-sprint">»<small>SPRINT</small></button></div><div class="look-zone" id="look-zone"></div></div>
+  </div>
+  <script type="module" src="game.js"></script>
+</body>
+</html>
