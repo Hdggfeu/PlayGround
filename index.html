@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#143d2b">
+  <meta name="description" content="Pokémon Jardin — an open-world garden adventure. Explore, catch, battle and bloom in any language.">
+  <title>Pokémon Jardin — Open World</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23143d2b'/%3E%3Cpath d='M32 12c9 6 14 13 14 22 0 10-7 18-14 18s-14-8-14-18c0-9 5-16 14-22z' fill='%23b7e26b'/%3E%3Cpath d='M32 50V27' stroke='%232f7d4f' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app">
+    <section id="titleScreen" class="screen title-screen">
+      <canvas id="titleCanvas" aria-hidden="true"></canvas>
+      <div class="title-vignette"></div>
+      <header class="title-topbar">
+        <div class="brand-mini"><span class="leaf-mark">✦</span> JARDIN</div>
+        <div class="title-tools">
+          <label class="select-wrap" aria-label="Language">
+            <span class="globe">◎</span>
+            <select id="langSelect"></select>
+          </label>
+          <button id="soundToggle" class="icon-btn" aria-label="Sound">♪</button>
+        </div>
+      </header>
+
+      <div class="title-hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="eyebrow-dot"></span><span data-i18n="appTag">POKÉMON OPEN WORLD</span></div>
+          <h1 class="logo">
+            <span class="logo-pokemon">POKÉMON</span>
+            <span class="logo-jardin">JARDIN<span class="logo-spark">✿</span></span>
+          </h1>
+          <p class="tagline" data-i18n="tagline">Explore the Grand Garden, befriend wild Pokémon and become a Garden Master.</p>
+          <div class="hero-badges">
+            <span class="pill"><b>4</b> <span data-i18n="hudBadges">Badges</span></span>
+            <span class="pill"><b>∞</b> <span data-i18n="openWorld">Open world</span></span>
+            <span class="pill"><b>10</b> <span data-i18n="languages">Languages</span></span>
+          </div>
+        </div>
+
+        <div class="mode-panel">
+          <div class="mode-heading">
+            <span data-i18n="chooseMode">Choose your journey</span>
+            <span class="mode-line"></span>
+          </div>
+          <div id="modeGrid" class="mode-grid">
+            <button class="mode-card selected" data-mode="adventure">
+              <span class="mode-icon mode-icon-leaf">❧</span>
+              <span class="mode-copy">
+                <strong data-i18n="modeAdventure">Garden Adventure</strong>
+                <small data-i18n="modeAdventureTag">The curated classic</small>
+              </span>
+              <span class="mode-check">✓</span>
+            </button>
+            <button class="mode-card" data-mode="random">
+              <span class="mode-icon mode-icon-dice">✦</span>
+              <span class="mode-copy">
+                <strong data-i18n="modeRandom">Random Classic</strong>
+                <small data-i18n="modeRandomTag">A wild new garden</small>
+              </span>
+              <span class="mode-check">✓</span>
+            </button>
+            <button class="mode-card" data-mode="hardcore">
+              <span class="mode-icon mode-icon-flame">♨</span>
+              <span class="mode-copy">
+                <strong data-i18n="modeHardcore">Random Hardcore</strong>
+                <small data-i18n="modeHardcoreTag">No items. No mercy.</small>
+              </span>
+              <span class="mode-check">✓</span>
+            </button>
+            <button class="mode-card" data-mode="nuzlocke">
+              <span class="mode-icon mode-icon-lock">⌁</span>
+              <span class="mode-copy">
+                <strong data-i18n="modeNuzlocke">Nuzlocke</strong>
+                <small data-i18n="modeNuzlockeTag">One catch per area</small>
+              </span>
+              <span class="mode-check">✓</span>
+            </button>
+          </div>
+          <p id="modeBlurb" class="mode-blurb"></p>
+          <div class="title-cta">
+            <button id="newGameBtn" class="btn btn-primary"><span data-i18n="newGame">New adventure</span><span class="btn-arrow">→</span></button>
+            <button id="continueBtn" class="btn btn-ghost hidden"><span data-i18n="continue">Continue</span></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="title-mons" aria-hidden="true">
+        <div class="title-mon mon-a"><img src="assets/pokemon/1.png" alt=""><span>01</span></div>
+        <div class="title-mon mon-b"><img src="assets/pokemon/4.png" alt=""><span>04</span></div>
+        <div class="title-mon mon-c"><img src="assets/pokemon/7.png" alt=""><span>07</span></div>
+      </div>
+
+      <footer class="title-footer">
+        <button id="howBtn" class="text-btn" data-i18n="howTo">How to play</button>
+        <span class="footer-dot">·</span>
+        <span data-i18n="footerNote">A cozy open-world fan adventure</span>
+        <span class="footer-dot">·</span>
+        <button id="creditsBtn" class="text-btn" data-i18n="credits">Credits</button>
+      </footer>
+    </section>
+
+    <section id="setupScreen" class="screen setup-screen hidden">
+      <div class="setup-backdrop"></div>
+      <div class="setup-card paper">
+        <button class="close-x" data-close="setup">×</button>
+        <div class="setup-head">
+          <span class="kicker" data-i18n="expedition">EXPEDITION</span>
+          <h2 data-i18n="setupTitle">Prepare your journey</h2>
+          <p data-i18n="setupSubtitle">Every seed grows a different garden.</p>
+        </div>
+
+        <div class="setup-mode" id="setupMode">
+          <span class="setup-mode-icon" id="setupModeIcon">❧</span>
+          <div>
+            <strong id="setupModeName">Garden Adventure</strong>
+            <small id="setupModeDesc"></small>
+          </div>
+        </div>
+
+        <div class="seed-row">
+          <label for="seedInput" data-i18n="seed">World seed</label>
+          <div class="seed-box">
+            <input id="seedInput" type="text" maxlength="24" autocomplete="off" spellcheck="false">
+            <button id="rerollBtn" class="mini-btn" title="Random seed">⟳</button>
+          </div>
+        </div>
+
+        <div class="rules-title"><span data-i18n="randomRules">Random rules</span><span class="rule-line"></span></div>
+        <div id="toggleGrid" class="toggle-grid">
+          <button class="toggle" data-toggle="trainers">
+            <span class="toggle-ico">♟</span><span><strong data-i18n="optTrainers">Trainer Pokémon</strong><small data-i18n="optTrainersDesc">Random teams for every trainer</small></span><i></i>
+          </button>
+          <button class="toggle" data-toggle="wild">
+            <span class="toggle-ico">❧</span><span><strong data-i18n="optWild">Wild grass</strong><small data-i18n="optWildDesc">Random wild encounters</small></span><i></i>
+          </button>
+          <button class="toggle" data-toggle="moves">
+            <span class="toggle-ico">✧</span><span><strong data-i18n="optMoves">Move types</strong><small data-i18n="optMovesDesc">Every move gets a random type</small></span><i></i>
+          </button>
+          <button class="toggle" data-toggle="starter">
+            <span class="toggle-ico">✿</span><span><strong data-i18n="optStarter">Random starter</strong><small data-i18n="optStarterDesc">Three surprise partners</small></span><i></i>
+          </button>
+        </div>
+        <p id="baseLockedNote" class="locked-note hidden"><span>▣</span> <span data-i18n="baseLocked">Adventure mode keeps its hand-tuned balance.</span></p>
+
+        <div class="setup-summary">
+          <div><span data-i18n="difficulty">Difficulty</span><strong id="setupDifficulty">Easy</strong></div>
+          <div><span data-i18n="lives">Lives</span><strong id="setupLives">Classic</strong></div>
+          <div><span data-i18n="catchRule">Catching</span><strong id="setupCatch">Free</strong></div>
+        </div>
+
+        <button id="startGameBtn" class="btn btn-primary btn-wide"><span data-i18n="enterGarden">Enter the garden</span><span class="btn-arrow">→</span></button>
+      </div>
+    </section>
+
+    <section id="starterScreen" class="screen starter-screen hidden">
+      <div class="starter-sky"></div>
+      <div class="starter-panel">
+        <div class="starter-head">
+          <span class="kicker" data-i18n="professor">PROFESSOR ROSE</span>
+          <h2 data-i18n="starterTitle">Choose your first partner</h2>
+          <p id="starterSubtitle" data-i18n="starterSubtitle">Three little friends are waiting for you.</p>
+        </div>
+        <div id="starterGrid" class="starter-grid"></div>
+        <div class="starter-foot">
+          <button id="starterBackBtn" class="btn btn-ghost" data-i18n="back">Back</button>
+          <span id="starterSeed" class="seed-chip"></span>
+        </div>
+      </div>
+      <div class="starter-flowers" aria-hidden="true">✿ ❀ ✾ ❁ ✿</div>
+    </section>
+
+    <section id="gameScreen" class="screen game-screen hidden">
+      <canvas id="gameCanvas"></canvas>
+      <div class="world-vignette"></div>
+
+      <header class="hud">
+        <div class="hud-left">
+          <div class="player-chip glass">
+            <div class="avatar">
+              <span class="avatar-hat"></span>
+              <span class="avatar-face">•‿•</span>
+            </div>
+            <div class="player-meta">
+              <strong id="hudName">Noé</strong>
+              <div class="badge-row" id="hudBadges"></div>
+            </div>
+          </div>
+          <div class="petal-chip glass"><span class="petal-ico">✿</span><b id="hudPetals">0</b><small data-i18n="petals">petals</small></div>
+        </div>
+
+        <div class="quest-chip glass">
+          <span class="quest-ico">◈</span>
+          <div>
+            <small id="hudArea">Village de Fleurs</small>
+            <strong id="hudObjective">Win your first badge</strong>
+          </div>
+        </div>
+
+        <div class="hud-right">
+          <div class="minimap-wrap glass">
+            <canvas id="minimap" width="148" height="116"></canvas>
+            <div class="minimap-label"><span id="minimapZone">Village</span><b id="minimapBadges">0/4</b></div>
+          </div>
+          <button id="menuBtn" class="round-btn" aria-label="Menu">☰</button>
+        </div>
+      </header>
+
+      <div id="interactPrompt" class="interact-prompt hidden"><kbd>E</kbd><span id="interactText">Talk</span></div>
+
+      <div class="quickbar glass" id="quickbar">
+        <button data-panel="team"><span class="q-key">1</span><span class="q-ico">◉</span><small data-i18n="btnTeam">Team</small></button>
+        <button data-panel="bag"><span class="q-key">2</span><span class="q-ico">▣</span><small data-i18n="btnBag">Bag</small></button>
+        <button data-panel="map"><span class="q-key">3</span><span class="q-ico">▤</span><small data-i18n="btnMap">Map</small></button>
+        <button data-panel="journal"><span class="q-key">4</span><span class="q-ico">✦</span><small data-i18n="btnJournal">Journal</small></button>
+      </div>
+
+      <div class="controls-hint glass"><kbd>WASD</kbd> <span data-i18n="move">Move</span> <span class="hint-dot">·</span> <kbd>E</kbd> <span data-i18n="interact">Interact</span> <span class="hint-dot">·</span> <kbd>Shift</kbd> <span data-i18n="sprint">Sprint</span></div>
+
+      <div id="joystick" class="joystick hidden"><div class="joystick-base"><div id="joystickKnob" class="joystick-knob"></div></div></div>
+      <div class="touch-actions hidden" id="touchActions">
+        <button id="touchMenu" class="touch-btn small">☰</button>
+        <button id="touchInteract" class="touch-btn action">A</button>
+      </div>
+
+      <div id="dialogBox" class="dialog-box paper hidden">
+        <div class="dialog-portrait" id="dialogPortrait"><span>✿</span></div>
+        <div class="dialog-content">
+          <div class="dialog-name" id="dialogName">Professor Rose</div>
+          <p id="dialogText"></p>
+          <div class="dialog-actions">
+            <span class="dialog-tip" data-i18n="dialogTip">E / Space to continue</span>
+            <button id="dialogNext" class="btn btn-small btn-primary" data-i18n="continue">Continue</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="toastLayer" class="toast-layer"></div>
+      <div id="areaBanner" class="area-banner hidden"><span class="area-kicker" data-i18n="nowEntering">NOW ENTERING</span><strong id="areaBannerName">Roseraie</strong><i></i></div>
+      <div id="worldTip" class="world-tip hidden"></div>
+    </section>
+
+    <section id="battleScreen" class="battle hidden">
+      <div id="battleSky" class="battle-sky">
+        <div class="battle-sun"></div>
+        <div class="battle-cloud c1"></div>
+        <div class="battle-cloud c2"></div>
+        <div class="battle-hills h1"></div>
+        <div class="battle-hills h2"></div>
+        <div class="battle-leaves" id="battleLeaves"></div>
+      </div>
+      <div class="battle-top">
+        <div class="battle-enemy-card monster-card">
+          <div class="mon-row"><strong id="enemyName">—</strong><span id="enemyLevel">Lv. 5</span></div>
+          <div class="type-row" id="enemyTypes"></div>
+          <div class="hp-track"><div id="enemyHp" class="hp-fill"></div></div>
+          <div class="hp-numbers"><span id="enemyHpText">20/20</span><span id="enemyStatus" class="status-chip"></span></div>
+        </div>
+        <div class="battle-mode-chip" id="battleModeChip">WILD</div>
+      </div>
+
+      <div class="battle-field">
+        <div class="platform enemy-platform"></div>
+        <div class="platform player-platform"></div>
+        <img id="enemySprite" class="mon-sprite enemy-sprite" alt="">
+        <img id="playerSprite" class="mon-sprite player-sprite" alt="">
+        <div id="battleFx" class="battle-fx"></div>
+      </div>
+
+      <div class="battle-bottom">
+        <div class="battle-message paper" id="battleMessage">What will you do?</div>
+        <div class="battle-panel">
+          <div class="battle-ally-card monster-card">
+            <div class="mon-row"><strong id="allyName">—</strong><span id="allyLevel">Lv. 5</span></div>
+            <div class="type-row" id="allyTypes"></div>
+            <div class="hp-track"><div id="allyHp" class="hp-fill"></div></div>
+            <div class="hp-numbers"><span id="allyHpText">20/20</span><span id="allyStatus" class="status-chip"></span></div>
+          </div>
+          <div id="battleActions" class="battle-actions"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="endingScreen" class="ending hidden">
+      <canvas id="endingCanvas"></canvas>
+      <div class="ending-content">
+        <div class="ending-flower">✿</div>
+        <span class="kicker" data-i18n="endingKicker">THE HEART BLOOMS</span>
+        <h2 data-i18n="endingTitle">The garden is alive again!</h2>
+        <p data-i18n="endingText">Seasons dance, flowers sing, and every Pokémon found a home.</p>
+        <div id="endingStats" class="ending-stats"></div>
+        <button id="playAgainBtn" class="btn btn-primary" data-i18n="playAgain">Play again</button>
+      </div>
+    </section>
+
+    <div id="modalRoot" class="modal-root hidden"></div>
+    <div id="fade" class="fade hidden"></div>
+    <div id="loading" class="loading hidden"><div class="loading-leaf">❧</div><span data-i18n="loading">Growing the garden…</span></div>
+  </div>
+  <script type="module" src="js/game.js"></script>
+</body>
+</html>

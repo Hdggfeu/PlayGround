@@ -6,6 +6,7 @@ import { pipeline } from 'node:stream/promises'
 const ROOT = new URL('..', import.meta.url).pathname
 const OUT = join(ROOT, 'js', 'pokedata.js')
 const ASSETS = join(ROOT, 'assets')
+mkdirSync(join(ROOT, 'js'), { recursive: true })
 mkdirSync(join(ASSETS, 'pokemon'), { recursive: true })
 mkdirSync(join(ASSETS, 'cries'), { recursive: true })
 
@@ -45,7 +46,7 @@ const MOVES = [
 ]
 
 const LANGS = ['en','fr','de','es','it','ja','ko','zh','pt','ru','nl','pl','tr','ar']
-const API_LANGS = { en:'en', fr:'fr', de:'de', es:'es', it:'it', ja:'ja', ko:'ko', zh:'zh-Hans' }
+const API_LANGS = { en:'en', fr:'fr', de:'de', es:'es', it:'it', ja:'ja', ko:'ko', 'zh-hans':'zh', 'zh-hant':'zh', 'ja-hrkt':'ja' }
 
 const cache = new Map()
 async function getJSON(url) {
