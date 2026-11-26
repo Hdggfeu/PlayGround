@@ -1,9 +1,50 @@
 import { POKEDEX, DEX_BY_ID } from '../data/pokedex.js'
 import { ITEMS, MOVES, movesFor, statsAt, expForLevel, levelFromExp, BADGES } from '../data/moves.js'
 import { clamp, mulberry32 } from '../core/utils.js'
+import { cloneControls, normalizeControls } from './controls.js'
 
-const SAVE_KEY = 'pokeverse.save.v1'
+const SAVE_KEY = 'pokeverse.save.v1' // legacy single-save key
+const SLOT_PREFIX = 'pokeverse.save.v2.slot'
+const LAST_SLOT_KEY = 'pokeverse.slot.v1'
+export const SAVE_SLOTS = [1, 2]
 let uidCounter = 1
+
+export const slotKey = (slot) => `${SLOT_PREFIX}${slot}`
+export const lastSlot = () => {
+  try { const n = +(localStorage.getItem(LAST_SLOT_KEY) || 1); return SAVE_SLOTS.includes(n) ? n : 1 } catch { return 1 }
+}
+export const setLastSlot = (slot) => { try { localStorage.setItem(LAST_SLOT_KEY, String(slot)) } catch {} }
+
+// Migrate the original single save into file 1 once, without destroying it.
+export function migrateSaves () {
+  try {
+    const legacy = localStorage.getItem(SAVE_KEY)
+    if (legacy && !localStorage.getItem(slotKey(1))) localStorage.setItem(slotKey(1), legacy)
+  } catch {}
+}
+
+export function readSlot (slot) {
+  try {
+    const raw = localStorage.getItem(slotKey(slot))
+    if (!raw) return null
+    const s = JSON.parse(raw)
+    return s?.started ? s : null
+  } catch { return null }
+}
+
+export function slotSummary (slot) {
+  const s = readSlot(slot)
+  if (!s) return { slot, empty: true, name: '', level: 1, badges: 0, caught: 0, playTime: 0, seed: 0 }
+  return {
+    slot, empty: false, name: s.name || 'Trainer', level: s.party?.[0]?.level || 1,
+    badges: s.badges?.length || 0, caught: s.caught?.length || 0, playTime: s.playTime || 0,
+    seed: s.seed || 0, starter: s.starter, updated: s.updated || 0,
+  }
+}
+
+export function deleteSlot (slot) {
+  try { localStorage.removeItem(slotKey(slot)) } catch {}
+}
 
 export function speciesOf (mon) { return DEX_BY_ID.get(mon.id) }
 
@@ -107,6 +148,7 @@ export const SIDE_QUESTS = [
 export class GameState {
   constructor () {
     this.v = 1
+    this.slot = 1
     this.name = 'Trainer'
     this.playerId = 'p' + Math.random().toString(36).slice(2, 9)
     this.colors = { skin:'#f0c8a0', hair:'#2b2b38', shirt:'#e05a4a', pants:'#2f3550', hat:'#e05a4a', bag:'#7a5a3a' }
@@ -128,7 +170,7 @@ export class GameState {
     this.lastTown = 'willowbrook'
     this.visitedTowns = []
     this.sideClaims = []
-    this.settings = { music: .55, sfx: .6, muted: false, weather: true }
+    this.settings = { music: .55, sfx: .6, muted: false, weather: true, controls: cloneControls() }
     this.stats = { catches: 0, battles: 0, wins: 0, chests: 0, steps: 0, shinies: 0, evolutions: 0 }
     this.weather = { type: 'clear', timer: 120 }
     this.tutorialStep = 0
@@ -230,11 +272,12 @@ export class GameState {
     if (!this.visitedTowns.includes(id)) { this.visitedTowns.push(id); this.save() }
     this.lastTown = id
   }
-  hasSave () { try { return !!localStorage.getItem(SAVE_KEY) } catch { return false } }
+  hasSave (slot = this.slot) { try { return !!localStorage.getItem(slotKey(slot)) } catch { return false } }
 
   serialize () {
     return {
-      v: this.v, name: this.name, playerId: this.playerId, colors: this.colors, seed: this.seed,
+      v: 2, slot: this.slot, updated: Date.now(),
+      name: this.name, playerId: this.playerId, colors: this.colors, seed: this.seed,
       party: this.party, box: this.box, bag: this.bag, seen: [...this.seen], caught: [...this.caught],
       badges: this.badges, money: this.money, starter: this.starter, pos: this.pos, dir: this.dir,
       clock: this.clock, playTime: this.playTime, started: this.started, champion: this.champion,
@@ -246,22 +289,28 @@ export class GameState {
   save () {
     try {
       if (!this.started) return
-      localStorage.setItem(SAVE_KEY, JSON.stringify(this.serialize()))
+      if (!SAVE_SLOTS.includes(this.slot)) this.slot = 1
+      localStorage.setItem(slotKey(this.slot), JSON.stringify(this.serialize()))
+      setLastSlot(this.slot)
     } catch (e) { console.warn('save failed', e) }
   }
 
-  load () {
+  load (slot = this.slot) {
     try {
-      const raw = localStorage.getItem(SAVE_KEY)
+      migrateSaves()
+      if (!SAVE_SLOTS.includes(slot)) slot = 1
+      const raw = localStorage.getItem(slotKey(slot))
       if (!raw) return false
       const s = JSON.parse(raw)
       if (!s || !s.started) return false
+      this.slot = slot
       Object.assign(this, {
         name: s.name, playerId: s.playerId || this.playerId, colors: { ...this.colors, ...s.colors }, seed: s.seed,
         party: s.party || [], box: s.box || [], bag: s.bag || {}, badges: s.badges || [], money: s.money || 0,
         starter: s.starter, pos: s.pos || this.pos, dir: s.dir || 'down', clock: s.clock ?? this.clock,
         playTime: s.playTime || 0, started: true, champion: !!s.champion, lastTown: s.lastTown || 'willowbrook',
-        visitedTowns: s.visitedTowns || ['willowbrook'], sideClaims: s.sideClaims || [], settings: { ...this.settings, ...s.settings },
+        visitedTowns: s.visitedTowns || ['willowbrook'], sideClaims: s.sideClaims || [],
+        settings: { ...this.settings, ...s.settings, controls: normalizeControls(s.settings?.controls) },
         stats: { ...this.stats, ...s.stats }, tutorialStep: s.tutorialStep || 0, weather: s.weather || this.weather,
       })
       this.seen = new Set(s.seen || []); this.caught = new Set(s.caught || [])
@@ -272,11 +321,12 @@ export class GameState {
         m.hp = Math.min(m.hp ?? maxHp(m), maxHp(m))
         if (!m.uid) m.uid = 'm' + (uidCounter++) + '_' + Math.floor(Math.random() * 1e6)
       }
+      setLastSlot(slot)
       return true
     } catch (e) { console.warn('load failed', e); return false }
   }
 
-  wipe () { try { localStorage.removeItem(SAVE_KEY) } catch {} }
+  wipe (slot = this.slot) { try { localStorage.removeItem(slotKey(slot)) } catch {} }
 }
 
-export { SAVE_KEY }
+export { SAVE_KEY, SLOT_PREFIX, LAST_SLOT_KEY }

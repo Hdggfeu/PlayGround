@@ -16,6 +16,9 @@
 
   <!-- ============ TITLE ============ -->
   <section id="title-screen">
+    <div class="lang-switch" id="title-lang" aria-label="Language">
+      <button data-lang="en">EN</button><button data-lang="fr">FR</button>
+    </div>
     <div class="title-sky"></div>
     <div class="title-sun"></div>
     <div class="title-clouds"><i></i><i></i><i></i><i></i></div>
@@ -47,6 +50,10 @@
         <div class="title-actions">
           <button id="btn-new" class="btn btn-primary btn-big">▶ New Journey</button>
           <button id="btn-continue" class="btn btn-ghost btn-big hidden">Continue</button>
+        </div>
+        <div class="title-slots-wrap">
+          <div class="title-slots-label">SAVE FILES</div>
+          <div class="title-slots" id="title-slots"></div>
         </div>
         <div class="server-status"><span class="live-dot"></span><b id="online-count">12,847</b> trainers online · <span id="title-seed-label">World seed ready</span></div>
       </div>
@@ -101,19 +108,19 @@
 
     <div class="chat-panel glass" id="chat-panel">
       <div class="chat-head"><span><span class="live-dot"></span> GLOBAL CHAT</span><span class="chat-online" id="chat-online">12,847 online</span><button class="mini-btn" id="chat-collapse">▾</button></div>
-      <div class="chat-feed" id="chat-feed"></div>
+      <div class="chat-feed" id="chat-feed" data-no-i18n></div>
       <form class="chat-input" id="chat-form"><input id="chat-text" maxlength="120" placeholder="Say something to the world…" autocomplete="off" /><button class="mini-send" type="submit">↵</button></form>
     </div>
 
     <div class="interact-prompt hidden" id="interact-prompt"><span class="key">E</span><span id="interact-text">Talk</span></div>
 
     <div class="hotbar" id="hotbar">
-      <button class="hot-btn" data-ui="party"><span class="hb-icon">◉</span><span>Party</span><kbd>1</kbd></button>
-      <button class="hot-btn" data-ui="bag"><span class="hb-icon">🎒</span><span>Bag</span><kbd>2</kbd></button>
-      <button class="hot-btn" data-ui="dex"><span class="hb-icon">▤</span><span>Dex</span><kbd>3</kbd></button>
-      <button class="hot-btn" data-ui="map"><span class="hb-icon">⌖</span><span>Map</span><kbd>M</kbd></button>
-      <button class="hot-btn" data-ui="quests"><span class="hb-icon">◆</span><span>Quests</span><kbd>Q</kbd></button>
-      <button class="hot-btn" data-ui="settings"><span class="hb-icon">⚙</span><span>Menu</span><kbd>Esc</kbd></button>
+      <button class="hot-btn" data-ui="party"><span class="hb-icon">◉</span><span>Party</span><kbd id="kbd-party">1</kbd></button>
+      <button class="hot-btn" data-ui="bag"><span class="hb-icon">🎒</span><span>Bag</span><kbd id="kbd-bag">2</kbd></button>
+      <button class="hot-btn" data-ui="dex"><span class="hb-icon">▤</span><span>Dex</span><kbd id="kbd-dex">3</kbd></button>
+      <button class="hot-btn" data-ui="map"><span class="hb-icon">⌖</span><span>Map</span><kbd id="kbd-map">M</kbd></button>
+      <button class="hot-btn" data-ui="quests"><span class="hb-icon">◆</span><span>Quests</span><kbd id="kbd-quests">Q</kbd></button>
+      <button class="hot-btn" data-ui="settings"><span class="hb-icon">⚙</span><span>Menu</span><kbd id="kbd-menu">Esc</kbd></button>
     </div>
 
     <div class="toast-stack" id="toast-stack"></div>
@@ -170,9 +177,9 @@
       <div class="battle-commands" id="battle-commands">
         <div class="move-grid" id="move-grid"></div>
         <div class="battle-side">
-          <button class="battle-btn" id="btn-bag">Bag <kbd>B</kbd></button>
-          <button class="battle-btn" id="btn-switch">Party <kbd>P</kbd></button>
-          <button class="battle-btn danger" id="btn-run">Run <kbd>R</kbd></button>
+          <button class="battle-btn" id="btn-bag"><span>Bag</span> <kbd id="kbd-bag-battle">B</kbd></button>
+          <button class="battle-btn" id="btn-switch"><span>Party</span> <kbd id="kbd-party-battle">P</kbd></button>
+          <button class="battle-btn danger" id="btn-run"><span>Run</span> <kbd id="kbd-run-battle">R</kbd></button>
         </div>
       </div>
       <div class="battle-submenu hidden" id="battle-submenu"></div>
@@ -192,6 +199,26 @@
       </div>
     </div>
   </div>
+  <section id="intro" class="hidden" aria-label="Introduction">
+    <div class="intro-sky"></div>
+    <div class="intro-stars" id="intro-stars"></div>
+    <div class="intro-hills"></div>
+    <div class="intro-sprites" aria-hidden="true">
+      <img src="assets/sprites/384.png" alt="" class="intro-mon im1" />
+      <img src="assets/sprites/493.png" alt="" class="intro-mon im2" />
+      <img src="assets/sprites/150.png" alt="" class="intro-mon im3" />
+      <img src="assets/sprites/249.png" alt="" class="intro-mon im4" />
+    </div>
+    <div class="intro-content">
+      <div class="intro-kicker" id="intro-kicker">POKÉVERSE ONLINE</div>
+      <div class="intro-text" id="intro-text"></div>
+      <div class="intro-dots" id="intro-dots"></div>
+      <div class="intro-actions">
+        <button class="btn btn-ghost" id="intro-skip">Skip intro</button>
+        <button class="btn btn-primary" id="intro-next">Continue</button>
+      </div>
+    </div>
+  </section>
   <div id="fade" class="hidden"></div>
 </div>
 <script type="module" src="js/main.js"></script>

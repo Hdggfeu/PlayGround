@@ -1,9 +1,11 @@
 import { World, TILE, T, B_SPAWN } from './world/world.js'
 import { WorldRenderer, drawPokemon, drawTrainer, drawProp, drawBuilding, drawLight, preload, getImage } from './render/sprites.js'
-import { GameState } from './core/state.js'
+import { GameState, SAVE_SLOTS, slotSummary, deleteSlot, lastSlot, setLastSlot, migrateSaves } from './core/state.js'
 import { Battle } from './battle/battle.js'
 import { UI } from './ui/ui.js'
 import { audio } from './core/audio.js'
+import { initI18n, t, tr, getLang, setLang, timeLabel, onLangChange } from './core/i18n.js'
+import { actionFor, isHeld, normalizeControls, cloneControls } from './core/controls.js'
 import { POKEDEX, DEX_BY_ID } from './data/pokedex.js'
 import { GYMS, CHAMPION } from './data/gyms.js'
 import { TYPE_COLORS, movesFor, expForLevel } from './data/moves.js'
@@ -87,9 +89,13 @@ class App {
     this.questToastCooldown = 0
     this.multiplayer = new Multiplayer(this)
     this.bound = false
+    this.selectedSlot = 1
+    this.rebinding = false
   }
 
   async boot () {
+    initI18n()
+    migrateSaves()
     this.canvas = $('world')
     this.ctx = this.canvas.getContext('2d')
     this.resize()
@@ -99,22 +105,93 @@ class App {
     this.drawTitleFireflies()
     requestAnimationFrame((t) => this.loop(t))
     this.checkSave()
+    onLangChange(() => this.updateTitleLanguage())
   }
 
+  esc (s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
+
   checkSave () {
-    try {
-      const raw = localStorage.getItem('pokeverse.save.v1')
-      if (raw) {
-        const s = JSON.parse(raw)
-        if (s?.started) {
-          $('btn-continue').classList.remove('hidden')
-          $('btn-continue').textContent = `Continue — ${s.name} · Lv ${s.party?.[0]?.level || 1}`
-          $('trainer-name').value = s.name || ''
-          const seedLabel = $('title-seed-label')
-          if (seedLabel) seedLabel.textContent = `Saved world · seed ${s.seed}`
-        }
+    migrateSaves()
+    const summaries = SAVE_SLOTS.map(slotSummary)
+    const firstEmpty = summaries.find(s => s.empty)
+    this.selectedSlot = firstEmpty?.slot || lastSlot()
+    this.refreshTitleSaves()
+    this.updateTitleLanguage()
+  }
+
+  updateTitleLanguage () {
+    const last = lastSlot()
+    const sum = slotSummary(last)
+    const cont = $('btn-continue')
+    if (cont) {
+      if (!sum.empty) {
+        cont.classList.remove('hidden')
+        cont.textContent = `${t('title.continue')} — ${sum.name} · ${t('hud.level')} ${sum.level}`
+      } else cont.classList.add('hidden')
+    }
+    const seedLabel = $('title-seed-label')
+    if (seedLabel) seedLabel.textContent = sum.empty ? t('title.seedReady') : `${t('title.savedWorld')} · ${sum.seed}`
+    const nameInput = $('trainer-name')
+    if (nameInput && !nameInput.value && !sum.empty) nameInput.value = sum.name
+    for (const b of document.querySelectorAll('#title-lang button')) b.classList.toggle('active', b.dataset.lang === getLang())
+  }
+
+  refreshTitleSaves () {
+    const wrap = $('title-slots')
+    if (!wrap) return
+    wrap.innerHTML = SAVE_SLOTS.map(slot => {
+      const s = slotSummary(slot)
+      const sel = this.selectedSlot === slot
+      if (s.empty) {
+        return `<div class="slot-row empty ${sel ? 'selected' : ''}" data-slot-select="${slot}">
+          <span class="slot-file">${t('title.file')} ${slot}</span>
+          <span class="slot-info">${t('title.empty')}</span>
+          <span class="slot-actions"><button class="slot-btn primary" data-slot-start="${slot}">${t('title.start')}</button></span>
+        </div>`
       }
-    } catch {}
+      return `<div class="slot-row ${sel ? 'selected' : ''}" data-slot-select="${slot}">
+        <span class="slot-file">${t('title.file')} ${slot}</span>
+        <span class="slot-info"><b>${this.esc(s.name)}</b> · ${t('hud.level')} ${s.level} · ${s.badges} ${t('settings.badges') || 'badges'} · ${s.caught} ${t('settings.catches')}</span>
+        <span class="slot-actions">
+          <button class="slot-btn primary" data-slot-play="${slot}">${t('title.play')}</button>
+          <button class="slot-btn" data-slot-start="${slot}">${t('title.overwrite')}</button>
+          <button class="slot-btn danger" data-slot-del="${slot}" title="${t('title.delete')}">✕</button>
+        </span>
+      </div>`
+    }).join('')
+    for (const row of wrap.querySelectorAll('[data-slot-select]')) row.onclick = (e) => {
+      if (e.target.closest('button')) return
+      this.selectedSlot = +row.dataset.slotSelect
+      audio.sfx('click')
+      this.refreshTitleSaves()
+    }
+    for (const b of wrap.querySelectorAll('[data-slot-start]')) b.onclick = (e) => {
+      e.stopPropagation()
+      const slot = +b.dataset.slotStart
+      this.selectedSlot = slot
+      const sum = slotSummary(slot)
+      if (!sum.empty && !window.confirm(t('save.overwrite'))) return
+      this.beginNew(slot)
+    }
+    for (const b of wrap.querySelectorAll('[data-slot-play]')) b.onclick = (e) => {
+      e.stopPropagation()
+      this.continueGame(+b.dataset.slotPlay)
+    }
+    for (const b of wrap.querySelectorAll('[data-slot-del]')) b.onclick = (e) => {
+      e.stopPropagation()
+      if (!window.confirm(t('save.delete'))) return
+      deleteSlot(+b.dataset.slotDel)
+      this.checkSave()
+    }
+    this.updateTitleLanguage()
+  }
+
+  beginNew (slot) {
+    audio.init(); audio.resume(); audio.sfx('select')
+    const name = ($('trainer-name').value || '').trim() || TRAINER_NAMES[Math.floor(Math.random() * TRAINER_NAMES.length)]
+    const chosen = document.querySelector('#title-swatches .swatch.active')
+    const colors = chosen ? { shirt: chosen.dataset.shirt, hat: chosen.dataset.hat } : { shirt: '#e05a4a', hat: '#e05a4a' }
+    this.startNew(name, colors, slot)
   }
 
   drawTitleFireflies () {
@@ -142,18 +219,28 @@ class App {
       }
     }
     $('btn-new').onclick = () => {
+      const sum = slotSummary(this.selectedSlot)
+      if (!sum.empty && !window.confirm(t('save.overwrite'))) return
       audio.init(); audio.resume(); audio.sfx('select')
       const name = ($('trainer-name').value || '').trim() || TRAINER_NAMES[Math.floor(Math.random() * TRAINER_NAMES.length)]
-      this.startNew(name, chosenColors)
+      this.startNew(name, chosenColors, this.selectedSlot)
     }
     $('btn-continue').onclick = () => {
       audio.init(); audio.resume(); audio.sfx('select')
-      this.continueGame()
+      this.continueGame(lastSlot())
+    }
+    for (const b of document.querySelectorAll('#title-lang button')) b.onclick = () => {
+      audio.init(); audio.resume(); audio.sfx('click')
+      setLang(b.dataset.lang)
+      this.refreshTitleSaves()
+      this.updateTitleLanguage()
     }
     $('trainer-name').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('btn-new').click() })
   }
 
-  async startNew (name, colors) {
+  async startNew (name, colors, slot = 1) {
+    this.state.slot = slot
+    setLastSlot(slot)
     $('title-screen').classList.add('hidden')
     $('loading').classList.remove('hidden')
     this.setLoading(6, 'Waking up the world engine…')
@@ -170,6 +257,7 @@ class App {
     this.setLoading(82, 'Opening the Poké Mart and polishing gym badges…')
     await sleep(180)
     this.state = new GameState()
+    this.state.slot = slot
     this.ui = new UI(this)
     this.state.playerId = 'p' + Math.random().toString(36).slice(2, 9)
     this.multiplayer.id = this.state.playerId
@@ -178,17 +266,18 @@ class App {
     this.setLoading(100, 'Ready!')
     await sleep(180)
     $('loading').classList.add('hidden')
+    await this.ui.playIntro(name)
     const starter = await this.ui.askStarter()
     this.state.newGame(name, { ...colors, skin: '#f0c8a0', hair: '#2b2b38', pants: '#2f3550', bag: '#7a5a3a' }, starter, seed)
     this.state.colors = { ...this.state.colors, ...colors }
     this.finishStart(true)
   }
 
-  async continueGame () {
+  async continueGame (slot = lastSlot()) {
     $('title-screen').classList.add('hidden')
     $('loading').classList.remove('hidden')
     this.setLoading(10, 'Loading your journey…')
-    const ok = this.state.load()
+    const ok = this.state.load(slot)
     if (!ok) { $('loading').classList.add('hidden'); $('title-screen').classList.remove('hidden'); return this.ui?.toast?.('Save could not be loaded.', '⚠', 'red') }
     await sleep(200)
     this.setLoading(36, 'Rebuilding your world…')
@@ -208,7 +297,7 @@ class App {
 
   setLoading (p, tip) {
     const f = $('loading-fill'); if (f) f.style.width = p + '%'
-    const t = $('loading-tip'); if (t && tip) t.textContent = tip
+    const el = $('loading-tip'); if (el && tip) el.textContent = tr(tip)
   }
 
   finishStart (isNew) {
@@ -300,19 +389,21 @@ class App {
     this.bound = true
     const down = (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return
+      if (this.rebinding) return
       const k = e.key.toLowerCase()
       if (['arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)) e.preventDefault()
       if (this.inBattle) return
       if (this.ui?.modalLayer && !this.ui.modalLayer.classList.contains('hidden')) return
       this.keys.add(k)
       if (e.repeat) return
-      if (k === 'e' || k === ' ') this.interact()
-      if (k === '1') this.ui?.openParty()
-      if (k === '2') this.ui?.openBag()
-      if (k === '3') this.ui?.openDex()
-      if (k === 'm') this.ui?.openMap()
-      if (k === 'q') this.ui?.openQuests()
-      if (k === 'escape') this.ui?.openSettings()
+      const action = actionFor(this.state.settings.controls, k)
+      if (action === 'interact') this.interact()
+      else if (action === 'party') this.ui?.openParty()
+      else if (action === 'bag') this.ui?.openBag()
+      else if (action === 'dex') this.ui?.openDex()
+      else if (action === 'map') this.ui?.openMap()
+      else if (action === 'quests') this.ui?.openQuests()
+      else if (action === 'menu') this.ui?.openSettings()
       if (k === 'c') $('chat-text')?.focus()
     }
     const up = (e) => { this.keys.delete(e.key.toLowerCase()) }
@@ -415,19 +506,20 @@ class App {
     return r < .15 ? 'rain' : r < .2 ? 'storm' : 'clear'
   }
 
+  held (action) { return isHeld(this.state.settings.controls, this.keys, action) }
+
   updatePlayer (dt) {
-    const k = this.keys
     let dx = 0, dy = 0
-    if (k.has('w') || k.has('arrowup')) dy -= 1
-    if (k.has('s') || k.has('arrowdown')) dy += 1
-    if (k.has('a') || k.has('arrowleft')) dx -= 1
-    if (k.has('d') || k.has('arrowright')) dx += 1
+    if (this.held('moveUp')) dy -= 1
+    if (this.held('moveDown')) dy += 1
+    if (this.held('moveLeft')) dx -= 1
+    if (this.held('moveRight')) dx += 1
     if (Math.abs(this.touch.x) > .15 || Math.abs(this.touch.y) > .15) { dx = this.touch.x; dy = this.touch.y }
     const len = Math.hypot(dx, dy)
     this.player.moving = len > .05
     if (!this.player.moving) return
     dx /= len; dy /= len
-    const sprint = k.has('shift') || this.touchRun
+    const sprint = this.held('sprint') || this.touchRun
     const speed = this.player.speed * (sprint ? 1.55 : 1)
     const step = speed * dt
     if (Math.abs(dx) > Math.abs(dy)) this.player.dir = dx > 0 ? 'right' : 'left'

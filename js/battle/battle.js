@@ -3,6 +3,8 @@ import { MOVES, ITEMS, TYPE_COLORS, effectiveness, effLabel, typeGradient, stats
 import { createMon, monStats, maxHp, gainExp, evolutionOptions, evolveMon, expToNext, healMon, syncMoves, expProgress } from '../core/state.js'
 import { clamp } from '../core/utils.js'
 import { drawTrainer } from '../render/sprites.js'
+import { tr, t, localizeDom, moveName, typeName, statusName } from '../core/i18n.js'
+import { actionFor } from '../core/controls.js'
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 const STAGE_MULT = [0.33, 0.4, 0.5, 0.66, 0.8, 1, 1.25, 1.4, 1.5, 1.66, 1.8, 2, 2.2, 2.4, 2.66, 3]
@@ -32,10 +34,12 @@ export class Battle {
     this.$('btn-switch')?.addEventListener('click', () => this.openSwitch())
     this.$('battle-help')?.addEventListener('click', () => this.app.ui.toast('Tip: match move types to the enemy\'s weaknesses. ▲ marks super-effective moves.', '💡'))
     this.bindKeys = (e) => {
-      if (this.ended) return
-      if (e.key === 'b' || e.key === 'B') this.openBag()
-      if (e.key === 'p' || e.key === 'P') this.openSwitch()
-      if (e.key === 'r' || e.key === 'R') this.tryRun()
+      if (this.ended || this.app.rebinding) return
+      if (e.target?.tagName === 'INPUT' || e.target?.tagName === 'TEXTAREA') return
+      const action = actionFor(this.state?.settings?.controls, e.key)
+      if (action === 'battleBag') this.openBag()
+      else if (action === 'battleParty') this.openSwitch()
+      else if (action === 'battleRun') this.tryRun()
       if (e.key === '1' || e.key === '2' || e.key === '3' || e.key === '4') {
         const i = +e.key - 1
         const btn = this.el.moves.querySelectorAll('.move-btn')[i]
@@ -60,10 +64,11 @@ export class Battle {
     this.enemyIndex = 0
     this.isWild = config.type === 'wild'
     this.el.screen.classList.remove('hidden')
+    localizeDom(this.el.screen)
     this.el.submenu.classList.add('hidden')
     this.el.catchAnim.classList.add('hidden')
     this.setArena(config.biome)
-    this.el.mode.textContent = this.isWild ? 'WILD BATTLE' : config.type === 'gym' ? 'GYM BATTLE' : config.type === 'champion' ? 'CHAMPION BATTLE' : 'TRAINER BATTLE'
+    this.el.mode.textContent = this.isWild ? t('battle.wild') : config.type === 'gym' ? t('battle.gym') : config.type === 'champion' ? t('battle.champion') : t('battle.trainer')
     this.el.enemySprite.style.display = ''
     this.el.allySprite.style.display = ''
     this.el.enemySprite.className = 'battle-sprite enemy-sprite enter-enemy'
@@ -131,12 +136,12 @@ export class Battle {
   renderPanels () {
     const a = this.ally, e = this.enemy, asp = this.allySp, esp = this.enemySp
     if (!a || !e) return
-    this.el.enemyName.textContent = (this.isWild ? 'Wild ' : '') + this.enemyNickname()
-    this.el.enemyLevel.textContent = 'Lv ' + e.level
-    this.el.enemyTypes.innerHTML = esp.t.map(t => `<span class="type-chip" style="background:${TYPE_COLORS[t]}">${t}</span>`).join('')
+    this.el.enemyName.textContent = (this.isWild ? t('battle.wild') + ' ' : '') + this.enemyNickname()
+    this.el.enemyLevel.textContent = t('hud.level') + ' ' + e.level
+    this.el.enemyTypes.innerHTML = esp.t.map(ty => `<span class="type-chip" style="background:${TYPE_COLORS[ty]}">${typeName(ty)}</span>`).join('')
     this.el.allyName.textContent = this.allyNickname()
-    this.el.allyLevel.textContent = 'Lv ' + a.level
-    this.el.allyTypes.innerHTML = asp.t.map(t => `<span class="type-chip" style="background:${TYPE_COLORS[t]}">${t}</span>`).join('')
+    this.el.allyLevel.textContent = t('hud.level') + ' ' + a.level
+    this.el.allyTypes.innerHTML = asp.t.map(ty => `<span class="type-chip" style="background:${TYPE_COLORS[ty]}">${typeName(ty)}</span>`).join('')
     this.setHp('enemy', e.hp / maxHp(e))
     this.setHp('ally', a.hp / maxHp(a))
     this.el.allyHpNum.textContent = `${Math.max(0, Math.round(a.hp))}/${maxHp(a)}`
@@ -150,7 +155,7 @@ export class Battle {
   statusChip (s) {
     if (!s) return ''
     const map = { Poison:'st-poison', Burn:'st-burn', Paralysis:'st-paralysis', Sleep:'st-sleep', Freeze:'st-freeze', Confusion:'st-confusion' }
-    return `<span class="status-chip ${map[s] || ''}">${s}</span>`
+    return `<span class="status-chip ${map[s] || ''}">${statusName(s)}</span>`
   }
 
   setHp (side, frac) {
@@ -163,7 +168,7 @@ export class Battle {
 
   updatePrompt () {
     if (this.busy || this.ended) return
-    this.el.text.textContent = `What will ${this.allyNickname()} do?`
+    this.el.text.textContent = tr(`What will ${this.allyNickname()} do?`)
   }
 
   renderMoves () {
@@ -179,18 +184,19 @@ export class Battle {
       const btn = document.createElement('button')
       btn.className = 'move-btn'
       btn.style.setProperty('--mt', TYPE_COLORS[def.type])
-      btn.innerHTML = `<div class="mv-name"><span>${def.name}</span><span class="mv-eff">${label}</span></div>
-        <div class="mv-meta"><span class="mv-type" style="background:${TYPE_COLORS[def.type]}">${def.type}</span>
-        <span>${def.cat === 'Status' ? 'Status' : def.power + ' PWR'}</span><span class="mv-pp">${mv.pp}/${mv.max} PP</span></div>`
+      btn.innerHTML = `<div class="mv-name"><span>${moveName(def.name)}</span><span class="mv-eff">${label}</span></div>
+        <div class="mv-meta"><span class="mv-type" style="background:${TYPE_COLORS[def.type]}">${typeName(def.type)}</span>
+        <span>${def.cat === 'Status' ? tr('Status') : def.power + ' ' + tr('PWR')}</span><span class="mv-pp">${mv.pp}/${mv.max} PP</span></div>`
       btn.disabled = this.busy || mv.pp <= 0
       btn.addEventListener('click', () => this.playerMove(mv))
       grid.appendChild(btn)
     }
-    if (!moves.length) grid.innerHTML = '<div class="empty-note">No moves! Use Struggle.</div>'
+    if (!moves.length) grid.innerHTML = `<div class="empty-note">${tr('No moves! Use Struggle.')}</div>`
     for (const btn of grid.querySelectorAll('.move-btn')) if (this.busy) btn.disabled = true
   }
 
   async say (text, hold = 380) {
+    text = tr(text)
     this.skipSay = false
     this.el.history.textContent = this.el.text.textContent
     this.el.text.textContent = ''
@@ -634,11 +640,11 @@ export class Battle {
       if (it.kind === 'revive') return this.state.party.some(m => m.hp <= 0)
       return false
     })
-    sub.innerHTML = `<div class="sub-head"><span>🎒 Bag</span><button class="mini-btn" id="sub-close">✕ Close</button></div>
+    sub.innerHTML = `<div class="sub-head"><span>🎒 ${t('battle.bag')}</span><button class="mini-btn" id="sub-close">✕ ${t('modal.close')}</button></div>
       <div class="sub-list">${usable.length ? usable.map(([id, n]) => {
         const it = ITEMS[id]
-        return `<button class="sub-item" data-item="${id}"><span class="si-icon">${it.icon}</span><span><span>${it.name}</span><br><span class="si-sub">×${n} · ${it.desc}</span></span></button>`
-      }).join('') : '<div class="empty-note">No usable items here. Visit a Poké Mart!</div>'}</div>`
+        return `<button class="sub-item" data-item="${id}"><span class="si-icon">${it.icon}</span><span><span>${tr(it.name)}</span><br><span class="si-sub">×${n} · ${tr(it.desc)}</span></span></button>`
+      }).join('') : `<div class="empty-note">${tr('No usable items here. Visit a Poké Mart!')}</div>`}</div>`
     sub.querySelector('#sub-close').onclick = () => { sub.classList.add('hidden'); this.app.audio.sfx('close') }
     for (const b of sub.querySelectorAll('[data-item]')) b.onclick = () => this.useBattleItem(b.dataset.item)
   }
@@ -724,13 +730,13 @@ export class Battle {
     this.app.audio.sfx('open')
     const sub = this.el.submenu
     sub.classList.remove('hidden')
-    sub.innerHTML = `<div class="sub-head"><span>◉ Choose a Pokémon${forced ? ' — your partner fainted!' : ''}</span>${forced ? '' : '<button class="mini-btn" id="sub-close">✕ Close</button>'}</div>
+    sub.innerHTML = `<div class="sub-head"><span>◉ ${tr(forced ? 'Choose a Pokémon — your partner fainted!' : 'Choose a Pokémon')}</span>${forced ? '' : `<button class="mini-btn" id="sub-close">✕ ${t('modal.close')}</button>`}</div>
       <div class="sub-list">${this.state.party.map((m, i) => {
         const sp = DEX_BY_ID.get(m.id)
         const hpPct = m.hp / maxHp(m)
         return `<button class="sub-item" data-switch="${i}" ${m.hp <= 0 || i === this.allyIndex ? 'disabled' : ''}>
           <img src="assets/sprites/${m.id}.png" style="width:34px;height:34px;image-rendering:pixelated" />
-          <span><span>${m.nickname || sp.name} ${i === this.allyIndex ? '(active)' : ''}</span><br><span class="si-sub">Lv ${m.level} · ${Math.round(hpPct * 100)}% HP ${m.status ? '· ' + m.status : ''}</span></span></button>`
+          <span><span>${m.nickname || sp.name} ${i === this.allyIndex ? tr('(active)') : ''}</span><br><span class="si-sub">${t('hud.level')} ${m.level} · ${Math.round(hpPct * 100)}% ${t('battle.hp')} ${m.status ? '· ' + statusName(m.status) : ''}</span></span></button>`
       }).join('')}</div>`
     if (!forced) sub.querySelector('#sub-close').onclick = () => { sub.classList.add('hidden'); this.app.audio.sfx('close') }
     for (const b of sub.querySelectorAll('[data-switch]')) b.onclick = () => this.doSwitch(+b.dataset.switch)

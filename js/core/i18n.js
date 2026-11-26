@@ -1,0 +1,907 @@
+// Lightweight, offline bilingual layer (English / French).
+// The game content was written in English; this module translates both the
+// static chrome and the generated text at the edges (toasts, dialogue, battle).
+import { POKEDEX, DEX_BY_NAME } from '../data/pokedex.js'
+import { ITEMS } from '../data/moves.js'
+import { FR_NAMES, FR_GENERA, FR_FLAVOR, FR_MOVES } from '../data/localization.fr.js'
+
+const LANG_KEY = 'pokeverse.lang.v1'
+
+const UI = {
+  en: {
+    'title.new': '▶ New Journey',
+    'title.continue': 'Continue',
+    'title.files': 'SAVE FILES',
+    'title.empty': 'Empty file',
+    'title.play': 'Play',
+    'title.start': 'Start',
+    'title.overwrite': 'Overwrite',
+    'title.delete': 'Delete',
+    'title.file': 'FILE',
+    'title.online': 'trainers online',
+    'title.seedReady': 'World seed ready',
+    'title.savedWorld': 'Saved world',
+    'title.badge': 'FAN-MADE OPEN WORLD · 1025 SPECIES · ALL 9 GENERATIONS',
+    'title.tagline': 'Every Pokémon. One world. <em>Join the adventure.</em>',
+    'title.foot': 'Unofficial fan project · Pokémon © Nintendo / Creatures / GAME FREAK · Built with love',
+    'title.name': 'TRAINER NAME',
+    'title.look': 'TRAINER LOOK',
+    'hud.mainQuest': 'MAIN QUEST',
+    'hud.openMap': 'Open Map (M)',
+    'hud.chat': 'GLOBAL CHAT',
+    'hud.chatPh': 'Say something to the world…',
+    'hud.party': 'Party',
+    'hud.bag': 'Bag',
+    'hud.dex': 'Dex',
+    'hud.map': 'Map',
+    'hud.quests': 'Quests',
+    'hud.menu': 'Menu',
+    'hud.level': 'Lv',
+    'battle.wild': 'WILD BATTLE',
+    'battle.trainer': 'TRAINER BATTLE',
+    'battle.gym': 'GYM BATTLE',
+    'battle.champion': 'CHAMPION BATTLE',
+    'battle.hp': 'HP',
+    'battle.bag': 'Bag',
+    'battle.party': 'Party',
+    'battle.run': 'Run',
+    'battle.help': "Tip: match move types to the enemy's weaknesses. ▲ marks super-effective moves.",
+    'intro.skip': 'Skip intro',
+    'intro.next': 'Continue',
+    'intro.start': 'Begin the adventure',
+    'intro.kicker': 'POKÉVERSE ONLINE',
+    'settings.title': 'MENU',
+    'settings.language': 'Language',
+    'settings.languageDesc': 'Interface, dialogue and battle text',
+    'settings.controls': 'Controls',
+    'settings.controlsDesc': 'Click a key to remap it',
+    'settings.resetControls': 'Reset controls',
+    'settings.pressKey': 'Press a key…',
+    'settings.saveFile': 'Save file',
+    'settings.saveFileDesc': 'Your progress is stored in this file',
+    'settings.switchSave': 'Switch file',
+    'settings.replayIntro': 'Replay intro',
+    'settings.music': 'Music volume',
+    'settings.musicDesc': 'Procedural chiptune soundtrack',
+    'settings.sfx': 'Sound effects',
+    'settings.sfxDesc': 'Battles, menus and pickups',
+    'settings.mute': 'Mute all',
+    'settings.muteDesc': 'Silence the world',
+    'settings.weather': 'Weather effects',
+    'settings.weatherDesc': 'Rain, snow and ashfall particles',
+    'settings.stats': 'Journey stats',
+    'settings.about': 'About',
+    'settings.aboutText': 'Pokéverse Online is a fan-made browser MMORPG prototype. All 1,025 species, 18 types and 9 generations are present. Multiplayer is simulated locally with AI trainers and cross-tab presence. Pokémon © Nintendo / Creatures / GAME FREAK.',
+    'settings.resume': 'Resume',
+    'settings.reset': 'Reset Save',
+    'settings.seed': 'World seed',
+    'settings.played': 'played',
+    'settings.wins': 'wins',
+    'settings.catches': 'catches',
+    'settings.evolutions': 'evolutions',
+    'settings.chests': 'chests',
+    'settings.shiny': 'shiny',
+    'settings.steps': 'steps',
+    'control.moveUp': 'Move up',
+    'control.moveDown': 'Move down',
+    'control.moveLeft': 'Move left',
+    'control.moveRight': 'Move right',
+    'control.sprint': 'Sprint',
+    'control.interact': 'Interact / talk',
+    'control.party': 'Party',
+    'control.bag': 'Bag',
+    'control.dex': 'Pokédex',
+    'control.map': 'World map',
+    'control.quests': 'Journal',
+    'control.menu': 'Menu',
+    'control.battleBag': 'Bag in battle',
+    'control.battleParty': 'Party in battle',
+    'control.battleRun': 'Run from battle',
+    'save.overwrite': 'This file already contains a journey. Overwrite it?',
+    'save.delete': 'Delete this save file? This cannot be undone.',
+    'save.switch': 'Return to the title screen to switch save files? Your progress is saved.',
+    'lang.changed': 'Language set to English.',
+    'intro.slide1': 'Every journey begins with a single step.',
+    'intro.slide2': 'A living open world, where all 1,025 Pokémon from nine generations roam free.',
+    'intro.slide3': 'Six Gyms. One Champion. Countless friends waiting to meet you.',
+    'intro.slide4': 'Your story starts now, {name}.',
+    'starter.title': 'CHOOSE YOUR PARTNER',
+    'starter.sub': 'Every legend starts with a first friend',
+    'starter.go': 'Begin Adventure ▶',
+    'starter.foot': 'You can catch all 1,025 species in the wild.',
+    'modal.continue': 'Continue',
+    'modal.close': 'Close',
+  },
+  fr: {
+    'title.new': '▶ Nouvelle aventure',
+    'title.continue': 'Continuer',
+    'title.files': 'FICHIERS DE SAUVEGARDE',
+    'title.empty': 'Emplacement vide',
+    'title.play': 'Jouer',
+    'title.start': 'Commencer',
+    'title.overwrite': 'Écraser',
+    'title.delete': 'Supprimer',
+    'title.file': 'FICHIER',
+    'title.online': 'dresseurs en ligne',
+    'title.seedReady': 'Monde prêt',
+    'title.savedWorld': 'Monde sauvegardé',
+    'title.badge': 'JEU DE FAN · MONDE OUVERT · 1025 ESPÈCES · 9 GÉNÉRATIONS',
+    'title.tagline': 'Chaque Pokémon. Un monde. <em>Rejoignez l’aventure.</em>',
+    'title.foot': 'Projet de fan non officiel · Pokémon © Nintendo / Creatures / GAME FREAK · Fait avec amour',
+    'title.name': 'NOM DU DRESSEUR',
+    'title.look': 'APPARENCE DU DRESSEUR',
+    'hud.mainQuest': 'QUÊTE PRINCIPALE',
+    'hud.openMap': 'Carte (M)',
+    'hud.chat': 'CHAT GLOBAL',
+    'hud.chatPh': 'Dites quelque chose au monde…',
+    'hud.party': 'Équipe',
+    'hud.bag': 'Sac',
+    'hud.dex': 'Dex',
+    'hud.map': 'Carte',
+    'hud.quests': 'Quêtes',
+    'hud.menu': 'Menu',
+    'hud.level': 'Nv',
+    'battle.wild': 'COMBAT SAUVAGE',
+    'battle.trainer': 'COMBAT DRESSEUR',
+    'battle.gym': 'COMBAT D’ARÈNE',
+    'battle.champion': 'COMBAT DE CHAMPION',
+    'battle.hp': 'PV',
+    'battle.bag': 'Sac',
+    'battle.party': 'Équipe',
+    'battle.run': 'Fuite',
+    'battle.help': 'Astuce : adaptez le type de vos capacités aux faiblesses de l’adversaire. ▲ signale une capacité super efficace.',
+    'intro.skip': 'Passer l’intro',
+    'intro.next': 'Continuer',
+    'intro.start': 'Commencer l’aventure',
+    'intro.kicker': 'POKÉVERSE ONLINE',
+    'settings.title': 'MENU',
+    'settings.language': 'Langue',
+    'settings.languageDesc': 'Interface, dialogues et textes de combat',
+    'settings.controls': 'Contrôles',
+    'settings.controlsDesc': 'Cliquez sur une touche pour la modifier',
+    'settings.resetControls': 'Réinitialiser les contrôles',
+    'settings.pressKey': 'Appuyez sur une touche…',
+    'settings.saveFile': 'Fichier de sauvegarde',
+    'settings.saveFileDesc': 'Votre progression est enregistrée dans ce fichier',
+    'settings.switchSave': 'Changer de fichier',
+    'settings.replayIntro': 'Revoir l’intro',
+    'settings.music': 'Volume de la musique',
+    'settings.musicDesc': 'Bande-son chiptune procédurale',
+    'settings.sfx': 'Effets sonores',
+    'settings.sfxDesc': 'Combats, menus et objets',
+    'settings.mute': 'Tout couper',
+    'settings.muteDesc': 'Silence total',
+    'settings.weather': 'Effets météo',
+    'settings.weatherDesc': 'Pluie, neige et cendres',
+    'settings.stats': 'Statistiques du voyage',
+    'settings.about': 'À propos',
+    'settings.aboutText': 'Pokéverse Online est un prototype de MMORPG de fan jouable dans le navigateur. Les 1 025 espèces, 18 types et 9 générations sont présents. Le multijoueur est simulé localement avec des dresseurs IA et la présence entre onglets. Pokémon © Nintendo / Creatures / GAME FREAK.',
+    'settings.resume': 'Reprendre',
+    'settings.reset': 'Réinitialiser',
+    'settings.seed': 'Graine du monde',
+    'settings.played': 'jouées',
+    'settings.wins': 'victoires',
+    'settings.catches': 'captures',
+    'settings.evolutions': 'évolutions',
+    'settings.chests': 'coffres',
+    'settings.shiny': 'chromatiques',
+    'settings.steps': 'pas',
+    'control.moveUp': 'Haut',
+    'control.moveDown': 'Bas',
+    'control.moveLeft': 'Gauche',
+    'control.moveRight': 'Droite',
+    'control.sprint': 'Courir',
+    'control.interact': 'Interagir / parler',
+    'control.party': 'Équipe',
+    'control.bag': 'Sac',
+    'control.dex': 'Pokédex',
+    'control.map': 'Carte du monde',
+    'control.quests': 'Journal',
+    'control.menu': 'Menu',
+    'control.battleBag': 'Sac en combat',
+    'control.battleParty': 'Équipe en combat',
+    'control.battleRun': 'Fuite en combat',
+    'save.overwrite': 'Ce fichier contient déjà une aventure. Voulez-vous l’écraser ?',
+    'save.delete': 'Supprimer ce fichier de sauvegarde ? Cette action est irréversible.',
+    'save.switch': 'Revenir à l’écran-titre pour changer de fichier ? Votre progression sera sauvegardée.',
+    'lang.changed': 'Langue réglée sur le français.',
+    'intro.slide1': 'Chaque aventure commence par un premier pas.',
+    'intro.slide2': 'Un monde ouvert vivant, où les 1 025 Pokémon de neuf générations vivent en liberté.',
+    'intro.slide3': 'Six Arènes. Un Champion. D’innombrables amis à rencontrer.',
+    'intro.slide4': 'Votre histoire commence maintenant, {name}.',
+    'starter.title': 'CHOISISSEZ VOTRE PARTENAIRE',
+    'starter.sub': 'Chaque légende commence par un premier ami',
+    'starter.go': 'Commencer l’aventure ▶',
+    'starter.foot': 'Vous pouvez capturer les 1 025 espèces dans la nature.',
+    'modal.continue': 'Continuer',
+    'modal.close': 'Fermer',
+  },
+}
+
+// Exact phrases used by the generated UI. Keys are the English source strings.
+const PHRASES = {
+  // ---------- title / hud ----------
+  'New Journey': 'Nouvelle aventure',
+  'Continue': 'Continuer',
+  'TRAINER NAME': 'NOM DU DRESSEUR',
+  'TRAINER LOOK': 'APPARENCE DU DRESSEUR',
+  'FAN-MADE OPEN WORLD · 1025 SPECIES · ALL 9 GENERATIONS': 'JEU DE FAN · MONDE OUVERT · 1025 ESPÈCES · 9 GÉNÉRATIONS',
+  'Every Pokémon. One world.': 'Chaque Pokémon. Un monde.',
+  'Join the adventure.': 'Rejoignez l’aventure.',
+  'World seed ready': 'Monde prêt',
+  'Unofficial fan project · Pokémon © Nintendo / Creatures / GAME FREAK · Built with love': 'Projet de fan non officiel · Pokémon © Nintendo / Creatures / GAME FREAK · Fait avec amour',
+  'MAIN QUEST': 'QUÊTE PRINCIPALE',
+  'Open Map (M)': 'Carte (M)',
+  'GLOBAL CHAT': 'CHAT GLOBAL',
+  'Say something to the world…': 'Dites quelque chose au monde…',
+  'Party': 'Équipe',
+  'Bag': 'Sac',
+  'Dex': 'Dex',
+  'Map': 'Carte',
+  'Quests': 'Quêtes',
+  'Menu': 'Menu',
+  'WILD BATTLE': 'COMBAT SAUVAGE',
+  'TRAINER BATTLE': 'COMBAT DRESSEUR',
+  'GYM BATTLE': 'COMBAT D’ARÈNE',
+  'CHAMPION BATTLE': 'COMBAT DE CHAMPION',
+  'Bag in battle': 'Sac en combat',
+  'Party in battle': 'Équipe en combat',
+  'Run from battle': 'Fuite en combat',
+  'Talk': 'Parler',
+  'Continue →': 'Continuer →',
+  '✕ Close': '✕ Fermer',
+  'Close': 'Fermer',
+  'Leave': 'Partir',
+  'Resume': 'Reprendre',
+  'Cancel': 'Annuler',
+  'Buy': 'Acheter',
+  'Claim': 'Récupérer',
+  'Claimed': 'Récupéré',
+  'Not now': 'Pas maintenant',
+  'Load more': 'Charger plus',
+  'Loading…': 'Chargement…',
+  'All': 'Tous',
+  'All types': 'Tous les types',
+  'Caught only': 'Capturés',
+  'Empty slot': 'Emplacement vide',
+  'Search by name or number…': 'Rechercher par nom ou numéro…',
+  'No Pokémon match those filters.': 'Aucun Pokémon ne correspond à ces filtres.',
+  'Your PC box is empty.': 'Votre boîte PC est vide.',
+  'No Pokémon in storage. Catch more!': 'Aucun Pokémon stocké. Capturez-en d’autres !',
+  'Your bag is empty. Visit the Poké Mart!': 'Votre sac est vide. Visitez la Poké Mart !',
+  'You have no usable items.': 'Vous n’avez aucun objet utilisable.',
+  'Choose a Pokémon': 'Choisissez un Pokémon',
+  'Use Item': 'Utiliser un objet',
+  'Set Lead': 'Mettre en tête',
+  'To Box': 'Vers la boîte',
+  'Heal at Center': 'Soigner au Centre',
+  'PC Box': 'Boîte PC',
+  'PC Box · 0 stored': 'Boîte PC · 0 stocké',
+  'Poké Balls are used during wild battles.': 'Les Poké Balls s’utilisent pendant les combats sauvages.',
+  'Balls and potions are usable in battle.': 'Les balls et potions s’utilisent en combat.',
+  'Everything a trainer needs': 'Tout ce qu’il faut à un dresseur',
+  'Poké Balls & Medicine': 'Poké Balls et soins',
+  'Not enough money.': 'Pas assez d’argent.',
+  'This cannot be undone.': 'Cette action est irréversible.',
+  'What will happen?': 'Que va-t-il se passer ?',
+  'This choice is permanent.': 'Ce choix est définitif.',
+  'What\'s happening?': 'Que se passe-t-il ?',
+  'Congratulations!': 'Félicitations !',
+  'Click the map to set a waypoint.': 'Cliquez sur la carte pour placer un repère.',
+  'Clear Waypoint': 'Effacer le repère',
+  'Towns & Centers': 'Villes et Centres',
+  'Mythic rifts': 'Failles mythiques',
+  'You': 'Vous',
+  'Gym': 'Arène',
+  'Unopened chest': 'Coffre non ouvert',
+  'Destinations': 'Destinations',
+  'Badges': 'Badges',
+  'Badge Case': 'Vitrine des badges',
+  'Hub': 'Ville',
+  'Main quest': 'Quête principale',
+  'Side Quests': 'Quêtes secondaires',
+  'Reward': 'Récompense',
+  'registered': 'enregistrés',
+  'CAUGHT': 'CAPTURÉ',
+  'SEEN': 'VU',
+  'UNKNOWN': 'INCONNU',
+  'LEGENDARY': 'LÉGENDAIRE',
+  'MYTHICAL': 'MYTHIQUE',
+  'Evolution': 'Évolution',
+  'special': 'spéciale',
+  'Not caught': 'Non capturé',
+  'Registered ✓': 'Enregistré ✓',
+  'No data yet.': 'Aucune donnée.',
+  'Catch this Pokémon to record its field notes.': 'Capturez ce Pokémon pour remplir ses notes de terrain.',
+  'No moves! Use Struggle.': 'Aucune capacité ! Utilisez Lutte.',
+  'Choose your next Pokémon!': 'Choisissez votre prochain Pokémon !',
+  'Victory!': 'Victoire !',
+  'You have no Pokémon left…': 'Vous n’avez plus de Pokémon…',
+  'You scurried back to the last Pokémon Center.': 'Vous retournez au dernier Centre Pokémon.',
+  'You can\'t run from a trainer battle!': 'Impossible de fuir un combat de dresseur !',
+  'Got away safely!': 'Vous vous échappez sans encombre !',
+  'Couldn\'t escape!': 'Impossible de s’échapper !',
+  'A critical hit!': 'Coup critique !',
+  'Choose a Pokémon': 'Choisissez un Pokémon',
+  'Choose a Pokémon — your partner fainted!': 'Choisissez un Pokémon — votre partenaire est K.O. !',
+  'Use Item': 'Utiliser un objet',
+  'Evolution!': 'Évolution !',
+  'EVOLUTION!': 'ÉVOLUTION !',
+  'POKÉDEX': 'POKÉDEX',
+  'YOUR PARTY': 'VOTRE ÉQUIPE',
+  'TRAINER BAG': 'SAC DU DRESSEUR',
+  'PC STORAGE': 'STOCKAGE PC',
+  'WORLD MAP': 'CARTE DU MONDE',
+  'JOURNAL': 'JOURNAL',
+  'POKÉ MART': 'POKÉ MART',
+  'MENU': 'MENU',
+  'POKÉVERSE CHAMPION': 'CHAMPION DE LA POKÉVERSE',
+  'CHOOSE YOUR PARTNER': 'CHOISISSEZ VOTRE PARTENAIRE',
+  'Your party is full. Send one to the box first.': 'Votre équipe est pleine. Envoyez d’abord un Pokémon dans la boîte.',
+  'Party is full.': 'L’équipe est pleine.',
+  'You need at least one Pokémon in your party.': 'Vous devez garder au moins un Pokémon dans votre équipe.',
+  'You must be inside a town to heal.': 'Vous devez être dans une ville pour soigner votre équipe.',
+  'Your party is fully healed!': 'Votre équipe est entièrement soignée !',
+  'That Pokémon is not fainted.': 'Ce Pokémon n’est pas K.O.',
+  'Already at max level.': 'Niveau maximum déjà atteint.',
+  'Party': 'Équipe',
+  'Wild': 'Sauvage',
+  'Signpost': 'Panneau',
+  'Mythic Rift': 'Faille mythique',
+  'A cozy home': 'Une maison chaleureuse',
+  'Prof. Willow': 'Prof. Willow',
+  'Professor Willow': 'Professeur Willow',
+  'Nurse Joy': 'Infirmière Joëlle',
+  'Clerk': 'Vendeur',
+  'Willow Lab': 'Labo Willow',
+  'Pokémon Center': 'Centre Pokémon',
+  'Champion Aster': 'Champion Aster',
+  'Tower Guardian': 'Gardien de la Tour',
+  'Champion of the Pokéverse': 'Champion de la Pokéverse',
+  'Bloom Badge': 'Badge Flora',
+  'Frost Badge': 'Badge Givre',
+  'Ember Badge': 'Badge Braise',
+  'Tide Badge': 'Badge Marée',
+  'Spark Badge': 'Badge Étincelle',
+  'Terra Badge': 'Badge Terra',
+  'Petal Whisperer': 'Murmure des Pétales',
+  'Glacier Sentinel': 'Sentinelle des Glaces',
+  'Cinder Dancer': 'Danseur de Braises',
+  'Tidal Song': 'Chant des Marées',
+  'Storm Chaser': 'Chasseur d’Orages',
+  'Bedrock Titan': 'Titan du Socle',
+  // ---------- types ----------
+  'Normal': 'Normal', 'Fire': 'Feu', 'Water': 'Eau', 'Electric': 'Électrik', 'Grass': 'Plante',
+  'Ice': 'Glace', 'Fighting': 'Combat', 'Poison': 'Poison', 'Ground': 'Sol', 'Flying': 'Vol',
+  'Psychic': 'Psy', 'Bug': 'Insecte', 'Rock': 'Roche', 'Ghost': 'Spectre', 'Dragon': 'Dragon',
+  'Dark': 'Ténèbres', 'Steel': 'Acier', 'Fairy': 'Fée',
+  // ---------- statuses ----------
+  'Burn': 'Brûlure', 'Paralysis': 'Paralysie', 'Sleep': 'Sommeil', 'Freeze': 'Gel', 'Confusion': 'Confusion',
+  // ---------- weather ----------
+  'Clear': 'Dégagé', 'Rain': 'Pluie', 'Storm': 'Orage', 'Snow': 'Neige', 'Ashfall': 'Cendres', 'Fog': 'Brouillard',
+  // ---------- towns / zones ----------
+  'Willowbrook Town': 'Bourg Saule',
+  'Goldleaf Village': 'Village Feuille-d’Or',
+  'Frosthollow': 'Valgelée',
+  'Emberfall': 'Braiseneige',
+  'Tidecrest': 'Crête-Marée',
+  'Stormwatch': 'Guet-des-Orages',
+  'Dunebloom': 'Dune-Fleurie',
+  'Verdant Meadows': 'Prairies Verdoyantes',
+  'Whispering Woods': 'Bois Murmurants',
+  'Azure Shore': 'Rivage Azur',
+  'Frostpeak Tundra': 'Toundra du Pic Gelé',
+  'Ember Caldera': 'Caldeira Ardente',
+  'Sunstone Desert': 'Désert du Soleil',
+  'Misty Marsh': 'Marais Brumeux',
+  'Stone Highlands': 'Hauts Plateaux',
+  'Wilds': 'Terres sauvages',
+  'The heart of the region. Professor Willow\'s lab and the Champion\'s tower stand here.': 'Le cœur de la région. Le laboratoire du professeur Willow et la tour du Champion s’y dressent.',
+  'A quiet village of gardeners and beekeepers, home of the Bloom Gym.': 'Un paisible village de jardiniers et d’apiculteurs, siège de l’Arène Flora.',
+  'A snug alpine hamlet beneath the aurora, home of the Frost Gym.': 'Un hameau alpin blotti sous les aurores, siège de l’Arène Givre.',
+  'A forge town on the rim of the caldera, home of the Ember Gym.': 'Une ville-forge au bord de la caldeira, siège de l’Arène Braise.',
+  'A breezy harbor where the tide sings, home of the Tide Gym.': 'Un port venteux où chante la marée, siège de l’Arène Marée.',
+  'A wind-battered lookout above the clouds, home of the Spark Gym.': 'Un belvédère battu par les vents au-dessus des nuages, siège de l’Arène Étincelle.',
+  'An oasis market at the desert\'s edge, home of the Terra Gym.': 'Un marché-oasis aux portes du désert, siège de l’Arène Terra.',
+  // ---------- quests ----------
+  'A New Beginning': 'Un nouveau départ',
+  'Choose your first partner in Willow Lab.': 'Choisissez votre premier partenaire au Labo Willow.',
+  'Talk to Professor Willow.': 'Parlez au professeur Willow.',
+  'Field Research': 'Recherche de terrain',
+  'Catch 3 different Pokémon to fill the Pokédex.': 'Capturez 3 Pokémon différents pour remplir le Pokédex.',
+  'The Bloom Badge': 'Le Badge Flora',
+  'Defeat Rosa at the Goldleaf Gym (west).': 'Battez Rosa à l’Arène de Feuille-d’Or (à l’ouest).',
+  'Frost & Flame': 'Givre et Flamme',
+  'Defeat Frost in Frosthollow and Blaze in Emberfall.': 'Battez Frost à Valgelée et Blaze à Braiseneige.',
+  'Tides & Sparks': 'Marées et Étincelles',
+  'Defeat Marina in Tidecrest and Volt in Stormwatch.': 'Battez Marina à Crête-Marée et Volt à Guet-des-Orages.',
+  'The Bedrock Trial': 'L’Épreuve du Socle',
+  'Defeat Terra at the Dunebloom Gym.': 'Battez Terra à l’Arène de Dune-Fleurie.',
+  'Champion of the Pokéverse': 'Champion de la Pokéverse',
+  'Climb Champion Tower and defeat Aster.': 'Grimpez au sommet de la Tour du Champion et battez Aster.',
+  'All six badges required.': 'Les six badges sont requis.',
+  'Pokéverse Champion': 'Champion de la Pokéverse',
+  'The world is yours. Complete your Pokédex and hunt the mythic rifts!': 'Le monde est à vous. Complétez le Pokédex et traquez les failles mythiques !',
+  'Recommended Lv. 12+': 'Niveau conseillé : 12+',
+  'Recommended Lv. 42+': 'Niveau conseillé : 42+',
+  'Field Notes': 'Notes de terrain',
+  'Catch 15 different Pokémon.': 'Capturez 15 Pokémon différents.',
+  'Wanderer': 'Vagabond',
+  'Visit all seven towns.': 'Visitez les sept villes.',
+  'Treasure Hunter': 'Chasseur de trésors',
+  'Open 5 hidden chests.': 'Ouvrez 5 coffres cachés.',
+  'Veteran Trainer': 'Dresseur vétéran',
+  'Win 25 battles.': 'Remportez 25 combats.',
+  'Step': 'Étape',
+  'Reward:': 'Récompense :',
+  // ---------- gym dialogue ----------
+  'The garden answers only to those who listen. Show me your bond with Pokémon!': 'Le jardin ne répond qu’à ceux qui savent écouter. Montrez-moi votre lien avec vos Pokémon !',
+  'Your roots run deep, trainer. The Bloom Badge is yours!': 'Vos racines sont profondes, dresseur. Le Badge Flora est à vous !',
+  'The mountain does not yield. Neither do I. Let the cold decide your worth.': 'La montagne ne cède pas. Moi non plus. Que le froid juge ta valeur.',
+  'A fire burns in you that no blizzard can touch. Take the Frost Badge.': 'Une flamme brûle en toi que nul blizzard ne peut atteindre. Prends le Badge Givre.',
+  'Every step you take leaves ash. Let us see if your spirit can withstand the forge!': 'Chaque pas laisse des cendres. Voyons si ton esprit résiste à la forge !',
+  'Ha! A brilliant flame. The Ember Badge belongs to you.': 'Ha ! Une flamme éclatante. Le Badge Braise t’appartient.',
+  'The tide is patient, and it always returns. Can your resolve do the same?': 'La marée est patiente et revient toujours. Ta détermination en fera-t-elle autant ?',
+  'You flow like a river finding the sea. The Tide Badge is yours.': 'Tu coules comme un fleuve vers la mer. Le Badge Marée est à toi.',
+  'I have raced thunder across these peaks. Try to keep up!': 'J’ai défié la foudre sur ces sommets. Essaie de suivre !',
+  'You move like lightning! The Spark Badge is yours, with my respect.': 'Tu te déplaces comme l’éclair ! Le Badge Étincelle est à toi, avec mon respect.',
+  'The desert has buried armies. It has never buried me. Stand firm, challenger!': 'Le désert a enseveli des armées. Jamais moi. Tiens bon, challenger !',
+  'Unbreakable! You have earned the Terra Badge. The Champion awaits.': 'Inébranlable ! Tu as gagné le Badge Terra. Le Champion t’attend.',
+  'Every road in this world leads here. Show me the trainer you have become!': 'Toutes les routes de ce monde mènent ici. Montre-moi le dresseur que tu es devenu !',
+  'Magnificent. The Pokéverse has a new Champion — and its name is yours.': 'Magnifique. La Pokéverse a un nouveau Champion — et il porte ton nom.',
+  // ---------- NPC lines ----------
+  'Every Pokémon in the world is out there, waiting to meet you.': 'Chaque Pokémon du monde vous attend quelque part.',
+  'Bring me field data — every species you catch is a new page in the Pokédex!': 'Rapportez-moi des données — chaque espèce capturée est une nouvelle page du Pokédex !',
+  'The Champion Tower opens only to trainers with six badges.': 'La Tour du Champion ne s’ouvre qu’aux dresseurs possédant six badges.',
+  'I saw a shiny Pokémon glittering in the tall grass last night!': 'J’ai vu un Pokémon chromatique scintiller dans les hautes herbes cette nuit !',
+  'The road north is cold, but the Pokémon there are magnificent.': 'La route du nord est froide, mais ses Pokémon sont magnifiques.',
+  'They say every single Pokémon from every region lives in this world. All 1,025 of them!': 'On dit que chaque Pokémon de chaque région vit ici. Les 1 025, sans exception !',
+  'Rifts glow purple at night. Something ancient sleeps inside.': 'Les failles brillent en violet la nuit. Quelque chose d’ancien y dort.',
+  'Press E near people and signs to chat. The world is full of stories.': 'Appuyez sur E près des gens et des panneaux pour discuter. Le monde regorge d’histoires.',
+  'Sprinting is Shift. Your Pokémon can keep up — mostly.': 'La course, c’est Maj. Vos Pokémon peuvent suivre — en général.',
+  'Welcome! Let me take care of your Pokémon.': 'Bienvenue ! Laissez-moi prendre soin de vos Pokémon.',
+  'Welcome to the Poké Mart!': 'Bienvenue à la Poké Mart !',
+  'Welcome to the Poké Mart! We stock everything a trainer needs — balls, potions, and the occasional Evolution Stone.': 'Bienvenue à la Poké Mart ! Tout ce qu’il faut à un dresseur — balls, potions et parfois une Pierre Évolution.',
+  'Your Pokédex is coming along beautifully! Keep catching — every species tells a story.': 'Votre Pokédex progresse à merveille ! Continuez à capturer — chaque espèce raconte une histoire.',
+  'Start with three catches. The tall grass south of town is full of friendly Pokémon.': 'Commencez par trois captures. Les hautes herbes au sud de la ville sont pleines de Pokémon amicaux.',
+  'What a beautiful day in the Pokéverse!': 'Quelle belle journée dans la Pokéverse !',
+  'Welcome to the Pokéverse!': 'Bienvenue dans la Pokéverse !',
+  'Good luck out there!': 'Bonne chance !',
+  'Nice! Add me to your friend list.': 'Sympa ! Ajoute-moi à ta liste d’amis.',
+  'The Champion Tower is no joke.': 'La Tour du Champion n’est pas une plaisanterie.',
+  'I saw that too!': 'J’ai vu ça aussi !',
+  'Let\'s battle sometime ⚡': 'On se bat quand tu veux ⚡',
+  'Did you check the tall grass?': 'Tu as regardé dans les hautes herbes ?',
+  'That\'s a great catch!': 'Belle capture !',
+  'I found a shortcut through the grass. Want to see it?': 'J’ai trouvé un raccourci dans les herbes. Tu veux voir ?',
+  'My bugs are tougher than they look!': 'Mes insectes sont plus coriaces qu’ils n’en ont l’air !',
+  'A picnic is better with Pokémon!': 'Un pique-nique, c’est mieux avec des Pokémon !',
+  'These boots have walked a thousand miles.': 'Ces bottes ont parcouru mille kilomètres.',
+  'The tide brought in something rare today.': 'La marée a apporté quelque chose de rare aujourd’hui.',
+  'You have the look of a rising star.': 'Tu as l’étoffe d’une future star.',
+  'The caldera dragons answer only to the bold.': 'Les dragons de la caldeira ne répondent qu’aux audacieux.',
+  'Show me everything you have learned.': 'Montre-moi tout ce que tu as appris.',
+  'The road east and north opens. Frost and Blaze await!': 'La route de l’est et du nord s’ouvre. Frost et Blaze vous attendent !',
+  'Two more badges down. Tidecrest and Stormwatch are calling!': 'Deux badges de plus. Crête-Marée et Guet-des-Orages vous appellent !',
+  'You are the Champion of the Pokéverse!': 'Vous êtes le Champion de la Pokéverse !',
+  'Your party has been restored to full health. The nurse waves as you head back out.': 'Votre équipe a retrouvé tous ses PV. L’infirmière vous salue tandis que vous repartez.',
+  'The lab hums with machines mapping every habitat in the region. Professor Willow looks up and smiles.': 'Le laboratoire bourdonne de machines cartographiant chaque habitat de la région. Le professeur Willow lève les yeux et sourit.',
+  'A warm fire crackles inside. A note on the door reads: "Out catching Pokémon — back soon!"': 'Un feu chaleureux crépite à l’intérieur. Un mot sur la porte : « Parti capturer des Pokémon — de retour bientôt ! »',
+  'The Champion\'s seat suits you. The world is still full of Pokémon to meet — go write the rest of your story.': 'Le siège de Champion vous va bien. Le monde regorge encore de Pokémon à rencontrer — écrivez la suite de votre histoire.',
+  'The air hums with ancient power. A rift shimmers, and the silhouette of a Legendary Pokémon moves beyond it. Step through?': 'L’air vibre d’une puissance ancienne. Une faille miroite, et la silhouette d’un Pokémon légendaire se profile. Traverser ?',
+  // ---------- UI ----------
+  'Your party is fully healed!': 'Votre équipe est entièrement soignée !',
+  'Your bag is empty. Visit the Poké Mart!': 'Votre sac est vide. Visitez la Poké Mart !',
+  'Your PC box is empty.': 'Votre boîte PC est vide.',
+  'No Pokémon in storage. Catch more!': 'Aucun Pokémon stocké. Capturez-en d’autres !',
+  'This cannot be undone.': 'Cette action est irréversible.',
+  'Choose a Pokémon': 'Choisissez un Pokémon',
+  'Evolution': 'Évolution',
+  'Evolve': 'Évoluer',
+  'special': 'spéciale',
+  'HP': 'PV',
+  'ATK': 'ATQ', 'DEF': 'DÉF', 'SPA': 'ATS', 'SPD': 'DÉS', 'SPE': 'VIT',
+  'Base stat total': 'Total des stats de base',
+  'Capture rate': 'Taux de capture',
+  'Registered ✓': 'Enregistré ✓',
+  'Not caught': 'Non capturé',
+  'CAUGHT': 'CAPTURÉ', 'SEEN': 'VU', 'UNKNOWN': 'INCONNU',
+  'LEGENDARY': 'LÉGENDAIRE', 'MYTHICAL': 'MYTHIQUE',
+  'Gym Leader': 'Champion d’Arène',
+  'Poké Mart': 'Poké Mart',
+  'Champion Tower': 'Tour du Champion',
+  'Willow Lab': 'Labo Willow',
+  'Pokémon Center': 'Centre Pokémon',
+  'Bloom Gym': 'Arène Flora', 'Frost Gym': 'Arène Givre', 'Ember Gym': 'Arène Braise',
+  'Tide Gym': 'Arène Marée', 'Spark Gym': 'Arène Étincelle', 'Terra Gym': 'Arène Terra',
+  'Grass Gym': 'Arène Plante', 'Ice Gym': 'Arène Glace', 'Fire Gym': 'Arène Feu',
+  'Water Gym': 'Arène Eau', 'Electric Gym': 'Arène Électrik', 'Rock Gym': 'Arène Roche',
+  'Dragon Gym': 'Arène Dragon',
+  // ---------- settings ----------
+  'Music volume': 'Volume de la musique',
+  'Procedural chiptune soundtrack': 'Bande-son chiptune procédurale',
+  'Sound effects': 'Effets sonores',
+  'Battles, menus and pickups': 'Combats, menus et objets',
+  'Mute all': 'Tout couper',
+  'Silence the world': 'Silence total',
+  'Weather effects': 'Effets météo',
+  'Rain, snow and ashfall particles': 'Pluie, neige et cendres',
+  'Controls': 'Contrôles',
+  'Move': 'Déplacement',
+  'Sprint': 'Courir',
+  'Interact': 'Interagir',
+  'World map': 'Carte du monde',
+  'Bag in battle': 'Sac en combat',
+  'Journey Stats': 'Statistiques du voyage',
+  'wins': 'victoires', 'catches': 'captures', 'evolutions': 'évolutions', 'chests': 'coffres',
+  'shiny': 'chromatiques', 'steps': 'pas',
+  'About': 'À propos',
+  'Reset Save': 'Réinitialiser',
+  'World seed': 'Graine du monde',
+  'played': 'jouées',
+  'Language': 'Langue',
+  'Interface, dialogue and battle text': 'Interface, dialogues et textes de combat',
+  'Save file': 'Fichier de sauvegarde',
+  'Switch file': 'Changer de fichier',
+  'Replay intro': 'Revoir l’intro',
+  'Reset controls': 'Réinitialiser les contrôles',
+  'Click a key to remap it': 'Cliquez sur une touche pour la modifier',
+  'Press a key…': 'Appuyez sur une touche…',
+  // ---------- battle ----------
+  'What will happen?': 'Que va-t-il se passer ?',
+  'Wild': 'Sauvage',
+  'The wild': 'Le',
+  'The foe\'s': 'Le',
+  'You received': 'Vous recevez',
+  'You earned the': 'Vous obtenez le',
+  'Go!': 'En avant !',
+  'A wild': 'Un',
+  'appeared!': 'apparaît !',
+  'wants to battle!': 'veut se battre !',
+  'used': 'utilise',
+  'attack missed!': 'attaque rate !',
+  'restored its health!': 'récupère des PV !',
+  'drained energy!': 'draine de l’énergie !',
+  'is hit with recoil!': 'subit le contrecoup !',
+  'became confused!': 'devient confus !',
+  'is already affected!': 'est déjà affecté !',
+  'fainted!': 'est K.O. !',
+  'gained': 'gagne',
+  'grew to': 'monte au niveau',
+  'learned': 'apprend',
+  'recovered': 'récupère',
+  'was revived!': 'est ranimé !',
+  'was caught!': 'est capturé !',
+  'broke free!': 's’échappe !',
+  'is fast asleep…': 'dort profondément…',
+  'woke up!': 'se réveille !',
+  'thawed out!': 'dégèle !',
+  'is frozen solid!': 'est complètement gelé !',
+  'is paralyzed! It can\'t move!': 'est paralysé ! Il ne peut pas bouger !',
+  'snapped out of confusion!': 'sort de sa confusion !',
+  'is confused and hurt itself!': 'est confus et se blesse lui-même !',
+  'flinched and couldn\'t move!': 'a peur et ne peut pas bouger !',
+  'protected itself!': 'se protège !',
+  'must recharge!': 'doit recharger !',
+  'is hurt by its burn!': 'souffre de sa brûlure !',
+  'is hurt by poison!': 'souffre du poison !',
+  'added to your': 'ajouté à votre',
+  'party': 'équipe',
+  'PC box': 'boîte PC',
+  // ---------- items (names + descriptions) ----------
+  'Poké Ball': 'Poké Ball',
+  'A basic device for catching wild Pokémon.': 'Un appareil de base pour capturer les Pokémon sauvages.',
+  'Great Ball': 'Super Ball',
+  'A good Ball with a higher catch rate than a Poké Ball.': 'Une Ball performante, avec un meilleur taux de capture qu’une Poké Ball.',
+  'Ultra Ball': 'Hyper Ball',
+  'An ultra-performance Ball with a high catch rate.': 'Une Ball ultra-performante au taux de capture élevé.',
+  'Master Ball': 'Master Ball',
+  'The best Ball. It never fails to catch a wild Pokémon.': 'La meilleure des Balls. Elle ne rate jamais sa cible.',
+  'Potion': 'Potion',
+  'Restores 25 HP to a Pokémon.': 'Restaure 25 PV à un Pokémon.',
+  'Super Potion': 'Super Potion',
+  'Restores 60 HP to a Pokémon.': 'Restaure 60 PV à un Pokémon.',
+  'Hyper Potion': 'Hyper Potion',
+  'Restores 150 HP to a Pokémon.': 'Restaure 150 PV à un Pokémon.',
+  'Full Restore': 'Guérison Totale',
+  'Fully restores HP and cures status conditions.': 'Restaure tous les PV et soigne les altérations d’état.',
+  'Revive': 'Rappel',
+  'Revives a fainted Pokémon with half its HP.': 'Ranime un Pokémon K.O. avec la moitié de ses PV.',
+  'Evolution Stone': 'Pierre Évolution',
+  'A mysterious stone that triggers certain evolutions.': 'Une pierre mystérieuse qui déclenche certaines évolutions.',
+  'Oran Berry': 'Baie Oran',
+  'A berry that restores 15 HP.': 'Une baie qui restaure 15 PV.',
+  'Rare Candy': 'Super Bonbon',
+  'Raises a Pokémon one level instantly.': 'Fait monter un Pokémon d’un niveau instantanément.',
+}
+
+const RULES = [
+  [/^Continue — (.+) · Lv (\d+)$/i, 'Continuer — $1 · Nv $2'],
+  [/^Saved world · seed (\d+)$/i, 'Monde sauvegardé · graine $1'],
+  [/^(\d[\d,.\s]*) trainers online$/i, '$1 dresseurs en ligne'],
+  [/^(\d[\d,.\s]*) online$/i, '$1 en ligne'],
+  [/^Lv (\d+)$/i, 'Nv $1'],
+  [/^Lv(\d+)$/i, 'Nv$1'],
+  [/^Caught (\d+)\/(\d+)$/i, 'Capturés $1/$2'],
+  [/^Caught (\d+)$/i, 'Capturés $1'],
+  [/^(\d+) caught · (\d+) seen · 1,025 species$/i, '$1 capturés · $2 vus · 1 025 espèces'],
+  [/^(\d+) \/ 1025 registered$/i, '$1 / 1 025 enregistrés'],
+  [/^(\d+) caught$/i, '$1 capturés'],
+  [/^(\d+) seen$/i, '$1 vus'],
+  [/^(\d+) badges · (\d+) caught$/i, '$1 badges · $2 capturés'],
+  [/^(\d+)\/(\d+) badges · (\d+) caught$/i, '$1/$2 badges · $3 capturés'],
+  [/^(\d+)\/(\d+) Pokémon · (\d+) in PC box$/i, '$1/$2 Pokémon · $3 dans la boîte PC'],
+  [/^Lead: (.+)$/i, 'En tête : $1'],
+  [/^PC Box · (\d+) stored$/i, 'Boîte PC · $1 stocké(s)'],
+  [/^(\d+) in PC box$/i, '$1 dans la boîte PC'],
+  [/^Step (\d+): (.+)$/i, 'Étape $1 : $2'],
+  [/^Gen (\d+)$/i, 'Gén. $1'],
+  [/^Recommended Lv\. (\d+)\+$/i, 'Niveau conseillé : $1+'],
+  [/^Your money: ₽([\d,.\s]+)$/i, 'Votre argent : ₽$1'],
+  [/^World seed (\d+)$/i, 'Graine du monde $1'],
+  [/^([\d,.\s]+) wins$/i, '$1 victoires'],
+  [/^([\d,.\s]+) catches$/i, '$1 captures'],
+  [/^([\d,.\s]+) evolutions$/i, '$1 évolutions'],
+  [/^([\d,.\s]+) chests$/i, '$1 coffres'],
+  [/^([\d,.\s]+) shiny$/i, '$1 chromatiques'],
+  [/^([\d,.\s]+) steps$/i, '$1 pas'],
+  [/^(\d+)h (\d+)m played$/i, '$1 h $2 min jouées'],
+  [/^(\d+)m played$/i, '$1 min jouées'],
+  [/^Base stat total (\d+)$/i, 'Total des stats de base $1'],
+  [/^Capture rate (\d+)$/i, 'Taux de capture $1'],
+  [/^Evolution Stone$/i, 'Pierre Évolution'],
+  [/^(.+) m · (.+) kg · Base stat total (\d+)$/i, '$1 m · $2 kg · Total des stats de base $3'],
+  [/^(.+) · Gen (\d+) · (CAUGHT|SEEN|UNKNOWN)$/i, (m, a, b, c) => `${a} · Gén. ${b} · ${({ CAUGHT: 'CAPTURÉ', SEEN: 'VU', UNKNOWN: 'INCONNU' })[c]}`],
+  [/^(.+) is ready to evolve\. Choose its path\.$/i, '$1 est prêt à évoluer. Choisissez sa voie.'],
+  [/^(.+) is evolving…$/i, '$1 évolue…'],
+  [/^(.+) evolved into (.+)!$/i, '$1 a évolué en $2 !'],
+  [/^(.+) joined your Pokédex!$/i, '$1 rejoint votre Pokédex !'],
+  [/^(.+) joined your party!$/i, '$1 rejoint votre équipe !'],
+  [/^(.+) was sent to the PC box\.$/i, '$1 a été envoyé dans la boîte PC.'],
+  [/^(.+) is now your lead!$/i, '$1 est maintenant en tête !'],
+  [/^(.+) recovered HP!$/i, '$1 récupère des PV !'],
+  [/^(.+) was revived!$/i, '$1 est ranimé !'],
+  [/^(.+) grew to Lv (\d+)!$/i, '$1 monte au niveau $2 !'],
+  [/^(.+) cannot use an Evolution Stone\.$/i, '$1 ne peut pas utiliser de Pierre Évolution.'],
+  [/^(.+) is already at full HP\.$/i, '$1 a déjà tous ses PV.'],
+  [/^Learned (.+)!$/i, 'Apprentissage : $1 !'],
+  [/^Quest complete: (.+)!$/i, 'Quête terminée : $1 !'],
+  [/^Bought (\d+)× (.+) for ₽([\d,.\s]+)$/i, 'Achat de $1× $2 pour ₽$3'],
+  [/^Found (\d+)× (.+)!$/i, '$1× $2 trouvé(s) !'],
+  [/^Picked (\d+)× (.+)!$/i, '$1× $2 cueilli(s) !'],
+  [/^Waypoint set: (.+)$/i, 'Repère placé : $1'],
+  [/^Waypoint cleared\.$/i, 'Repère effacé.'],
+  [/^New Pokédex entry: #(\d+) (.+)!$/i, 'Nouvelle entrée Pokédex : n°$1 $2 !'],
+  [/^Main quest: (.+)$/i, 'Quête principale : $1'],
+  [/^Main quest updated: (.+)$/i, 'Quête principale mise à jour : $1'],
+  [/^Welcome back, (.+)!$/i, 'Bon retour, $1 !'],
+  [/^Challenge (.+)$/i, 'Défier $1'],
+  [/^Battle (.+)$/i, 'Combattre $1'],
+  [/^Talk to (.+)$/i, 'Parler à $1'],
+  [/^Challenge (.+) Gym$/i, 'Défier l’Arène $1'],
+  [/^Enter (.+)$/i, 'Entrer : $1'],
+  [/^Heal your party$/i, 'Soigner votre équipe'],
+  [/^Browse the Poké Mart$/i, 'Visiter la Poké Mart'],
+  [/^Challenge Champion Aster$/i, 'Défier le Champion Aster'],
+  [/^Knock on the door$/i, 'Frapper à la porte'],
+  [/^Read sign$/i, 'Lire le panneau'],
+  [/^Open chest$/i, 'Ouvrir le coffre'],
+  [/^Touch the rift$/i, 'Toucher la faille'],
+  [/^Pick berries$/i, 'Cueillir des baies'],
+  [/^All your Pokémon have fainted\. Visit a Pokémon Center!$/i, 'Tous vos Pokémon sont K.O. Visitez un Centre Pokémon !'],
+  [/^(\d+)× (.+) found!$/i, '$1× $2 trouvé(s) !'],
+  // ---------- battle logs ----------
+  [/^A wild (.+) appeared!$/i, 'Un $1 sauvage apparaît !'],
+  [/^(.+) wants to battle!$/i, '$1 veut se battre !'],
+  [/^Go! (.+)!$/i, 'En avant, $1 !'],
+  [/^What will (.+) do\?$/i, 'Que va faire $1 ?'],
+  [/^Wild (.+)$/i, '$1 sauvage'],
+  [/^(.+) used (.+)!$/i, '$1 utilise $2 !'],
+  [/^(.+)'s attack missed!$/i, 'L’attaque de $1 rate !'],
+  [/^It doesn't affect (.+)…$/i, 'Cela n’affecte pas $1…'],
+  [/^(.+) restored its health!$/i, '$1 récupère des PV !'],
+  [/^(.+) drained energy!$/i, '$1 draine de l’énergie !'],
+  [/^(.+) is hit with recoil!$/i, '$1 subit le contrecoup !'],
+  [/^(.+)'s (ATK|DEF|SPA|SPD|SPE) fell!$/i, (m, a, b) => `La ${({ ATK: 'ATQ', DEF: 'DÉF', SPA: 'ATS', SPD: 'DÉS', SPE: 'VIT' })[b]} de ${a} baisse !`],
+  [/^(.+)'s (ATK|DEF|SPA|SPD|SPE) rose!$/i, (m, a, b) => `La ${({ ATK: 'ATQ', DEF: 'DÉF', SPA: 'ATS', SPD: 'DÉS', SPE: 'VIT' })[b]} de ${a} monte !`],
+  [/^(.+) is already affected!$/i, '$1 est déjà affecté !'],
+  [/^(.+) became confused!$/i, '$1 devient confus !'],
+  [/^(.+) was paralyzed!$/i, '$1 est paralysé !'],
+  [/^(.+) was burned!$/i, '$1 est brûlé !'],
+  [/^(.+) was poisoned!$/i, '$1 est empoisonné !'],
+  [/^(.+) was frozen!$/i, '$1 est gelé !'],
+  [/^(.+) was put to sleep!$/i, '$1 s’endort !'],
+  [/^(.+) is hurt by its burn!$/i, '$1 souffre de sa brûlure !'],
+  [/^(.+) is hurt by poison!$/i, '$1 souffre du poison !'],
+  [/^The wild (.+) fainted!$/i, 'Le $1 sauvage est K.O. !'],
+  [/^The foe's (.+) fainted!$/i, 'Le $1 adverse est K.O. !'],
+  [/^(.+) fainted!$/i, '$1 est K.O. !'],
+  [/^(.+) gained (\d+) EXP!$/i, '$1 gagne $2 EXP !'],
+  [/^(.+) grew to Lv (\d+)!$/i, '$1 monte au niveau $2 !'],
+  [/^(.+) learned (.+)!$/i, '$1 apprend $2 !'],
+  [/^You received ₽([\d,.\s]+)!$/i, 'Vous recevez ₽$1 !'],
+  [/^You earned the (.+)!$/i, 'Vous obtenez le $1 !'],
+  [/^Congratulations! (.+) evolved into (.+)!$/i, 'Félicitations ! $1 a évolué en $2 !'],
+  [/^Gotcha! (.+) was caught!$/i, 'Capturé ! $1 est à vous !'],
+  [/^Oh no! (.+) broke free!$/i, 'Oh non ! $1 s’est échappé !'],
+  [/^(.+) recovered (\d+) HP!$/i, '$1 récupère $2 PV !'],
+  [/^(.+) was revived!$/i, '$1 est ranimé !'],
+  [/^(.+) is fast asleep…$/i, '$1 dort profondément…'],
+  [/^(.+) woke up!$/i, '$1 se réveille !'],
+  [/^(.+) thawed out!$/i, '$1 dégèle !'],
+  [/^(.+) is frozen solid!$/i, '$1 est complètement gelé !'],
+  [/^(.+) is paralyzed! It can't move!$/i, '$1 est paralysé ! Il ne peut pas bouger !'],
+  [/^(.+) snapped out of confusion!$/i, '$1 sort de sa confusion !'],
+  [/^(.+) is confused and hurt itself!$/i, '$1 est confus et se blesse lui-même !'],
+  [/^(.+) flinched and couldn't move!$/i, '$1 a peur et ne peut pas bouger !'],
+  [/^(.+) protected itself!$/i, '$1 se protège !'],
+  [/^(.+) must recharge!$/i, '$1 doit recharger !'],
+  [/^(.+) is hurt by its burn!$/i, '$1 souffre de sa brûlure !'],
+  [/^(.+) is hurt by poison!$/i, '$1 souffre du poison !'],
+  [/^(.+) added to your party!$/i, '$1 ajouté à votre équipe !'],
+  [/^(.+) added to your PC box!$/i, '$1 ajouté à votre boîte PC !'],
+  [/^(.+) wants to battle!$/i, '$1 veut se battre !'],
+  [/^(.+) sent out (.+)!$/i, '$1 envoie $2 !'],
+  [/^\+₽([\d,.\s]+) from the wild$/i, '+₽$1 gagnés dans la nature'],
+  [/^(\d+) EXP$/i, '$1 EXP'],
+]
+
+const MOVE_KEYS = Object.keys(FR_MOVES).sort((a, b) => b.length - a.length)
+const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const MOVE_RE = new RegExp(`\\b(${MOVE_KEYS.map(escapeRe).join('|')})\\b`, 'g')
+
+let lang = 'en'
+let appliedLang = null
+const listeners = new Set()
+
+function readLang () {
+  try {
+    const stored = localStorage.getItem(LANG_KEY)
+    if (stored === 'fr' || stored === 'en') return stored
+    return (navigator.language || '').toLowerCase().startsWith('fr') ? 'fr' : 'en'
+  } catch { return 'en' }
+}
+
+export function getLang () { return lang }
+
+export function t (key, vars) {
+  const table = UI[lang] || UI.en
+  let s = table[key] ?? UI.en[key] ?? key
+  if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, v)
+  return s
+}
+
+function translateMoveNames (s) {
+  if (lang !== 'fr') return s
+  return s.replace(MOVE_RE, (m) => FR_MOVES[m] || m)
+}
+
+export function tr (text) {
+  if (text == null) return text
+  if (lang === 'en') return String(text)
+  let s = String(text)
+  // composite labels such as "Seed Pokémon · Gen 1 · CAUGHT"
+  if (s.includes(' · ')) s = s.split(' · ').map(part => tr(part)).join(' · ')
+  if (PHRASES[s]) return PHRASES[s]
+  for (const [re, rep] of RULES) {
+    if (re.test(s)) {
+      const out = s.replace(re, rep)
+      if (out !== s) return translateMoveNames(out)
+    }
+  }
+  return translateMoveNames(s)
+}
+
+export function moveName (name) { return lang === 'fr' ? (FR_MOVES[name] || name) : name }
+export function typeName (type) { return lang === 'fr' ? (PHRASES[type] || type) : type }
+export function statusName (status) { return lang === 'fr' ? (PHRASES[status] || status) : status }
+export function itemName (item) { return item?.name || '' }
+
+export function timeLabel (minutes) {
+  const h = Math.floor(minutes / 60) % 24, m = Math.floor(minutes % 60)
+  if (lang === 'fr') return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+  const ampm = h < 12 ? 'AM' : 'PM'
+  return `${((h + 11) % 12) + 1}:${String(m).padStart(2, '0')} ${ampm}`
+}
+
+export function applySpeciesLanguage () {
+  if (appliedLang === lang) return
+  for (const sp of POKEDEX) {
+    if (sp._enName == null) {
+      sp._enName = sp.name
+      sp._enCat = sp.cat
+      sp._enFl = sp.fl
+    }
+    if (lang === 'fr') {
+      sp.name = FR_NAMES[sp.n] || sp._enName
+      sp.cat = FR_GENERA[sp.n] || sp._enCat
+      sp.fl = FR_FLAVOR[sp.n] || sp._enFl
+    } else {
+      sp.name = sp._enName
+      sp.cat = sp._enCat
+      sp.fl = sp._enFl
+    }
+  }
+  // Keep the name index usable in both languages.
+  if (DEX_BY_NAME) {
+    DEX_BY_NAME.clear()
+    for (const sp of POKEDEX) {
+      DEX_BY_NAME.set(sp._enName.toLowerCase(), sp)
+      if (FR_NAMES[sp.n]) DEX_BY_NAME.set(FR_NAMES[sp.n].toLowerCase(), sp)
+    }
+  }
+  appliedLang = lang
+}
+
+export function applyStatic (root = document) {
+  document.documentElement.lang = lang
+  // Text nodes
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode (node) {
+      const p = node.parentElement
+      if (!p) return NodeFilter.FILTER_REJECT
+      if (p.closest('script,style,textarea,.no-i18n,[data-no-i18n]')) return NodeFilter.FILTER_REJECT
+      if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT
+      return NodeFilter.FILTER_ACCEPT
+    },
+  })
+  const nodes = []
+  while (walker.nextNode()) nodes.push(walker.currentNode)
+  for (const node of nodes) {
+    const raw = node.nodeValue
+    const lead = raw.match(/^\s*/)[0], trail = raw.match(/\s*$/)[0]
+    const translated = tr(raw.trim())
+    if (translated !== raw.trim()) node.nodeValue = lead + translated + trail
+  }
+  // Attributes
+  for (const el of root.querySelectorAll('[placeholder],[title],[aria-label]')) {
+    for (const attr of ['placeholder', 'title', 'aria-label']) {
+      const v = el.getAttribute(attr)
+      if (!v) continue
+      const tv = tr(v)
+      if (tv !== v) el.setAttribute(attr, tv)
+    }
+  }
+  // data-i18n / data-i18n-html / data-i18n-ph
+  for (const el of root.querySelectorAll('[data-i18n]')) el.textContent = t(el.dataset.i18n)
+  for (const el of root.querySelectorAll('[data-i18n-html]')) el.innerHTML = t(el.dataset.i18nHtml)
+  for (const el of root.querySelectorAll('[data-i18n-ph]')) el.setAttribute('placeholder', t(el.dataset.i18nPh))
+  for (const el of root.querySelectorAll('[data-i18n-title]')) el.setAttribute('title', t(el.dataset.i18nTitle))
+}
+
+export function localizeDom (root) {
+  if (!root || lang === 'en') return
+  applyStatic(root)
+}
+
+export function setLang (next, { persist = true } = {}) {
+  if (next !== 'en' && next !== 'fr') next = 'en'
+  lang = next
+  if (persist) { try { localStorage.setItem(LANG_KEY, lang) } catch {} }
+  applySpeciesLanguage()
+  applyStatic(document)
+  for (const fn of listeners) fn(lang)
+  return lang
+}
+
+export function onLangChange (fn) { listeners.add(fn); return () => listeners.delete(fn) }
+
+export function initI18n () {
+  lang = readLang()
+  applySpeciesLanguage()
+  applyStatic(document)
+}
+
+export function keyLabel (key) {
+  if (!key) return '—'
+  const map = {
+    arrowup: '↑', arrowdown: '↓', arrowleft: '←', arrowright: '→',
+    ' ': lang === 'fr' ? 'Espace' : 'Space',
+    shift: lang === 'fr' ? 'Maj' : 'Shift',
+    escape: 'Esc', enter: lang === 'fr' ? 'Entrée' : 'Enter',
+    control: 'Ctrl', alt: 'Alt', tab: 'Tab', backspace: lang === 'fr' ? 'Retour' : 'Backspace',
+  }
+  return map[key] || (key.length === 1 ? key.toUpperCase() : key)
+}
+
+export { LANG_KEY }

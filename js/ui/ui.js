@@ -1,9 +1,24 @@
 import { POKEDEX, DEX_BY_ID, GEN_RANGES } from '../data/pokedex.js'
 import { TYPES, TYPE_COLORS, ITEMS, MOVES, BADGES, statsAt, expForLevel, movesFor, typeGradient } from '../data/moves.js'
 import { GYMS, CHAMPION } from '../data/gyms.js'
-import { monStats, maxHp, healMon, healParty, createMon, gainExp, syncMoves, evolutionOptions, evolveMon, expToNext, expProgress } from '../core/state.js'
+import { monStats, maxHp, healMon, healParty, createMon, gainExp, syncMoves, evolutionOptions, evolveMon, expToNext, expProgress, SAVE_SLOTS, slotSummary, deleteSlot } from '../core/state.js'
 import { drawTrainer } from '../render/sprites.js'
 import { clamp, fmt, timeString, niceTime, hexAlpha } from '../core/utils.js'
+import { t, tr, getLang, setLang, localizeDom, timeLabel, moveName, typeName, statusName, applyStatic } from '../core/i18n.js'
+import { DEFAULT_CONTROLS, CONTROL_GROUPS, normalizeControls, resetControls, bindingText, actionFor, cloneControls } from '../core/controls.js'
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+
+function cloneControlsForRebind (controls, action, key) {
+  const next = cloneControls(controls)
+  for (const [other, keys] of Object.entries(next)) {
+    if (other === action) continue
+    next[other] = keys.filter(k => k !== key)
+    if (!next[other].length) next[other] = [...DEFAULT_CONTROLS[other]]
+  }
+  next[action] = [key]
+  return next
+}
 
 const $ = (id) => document.getElementById(id)
 const el = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e }
@@ -70,6 +85,15 @@ export class UI {
         else if (!this.dialogueEl.classList.contains('hidden')) { this.hideDialogue(); e.preventDefault() }
       }
     })
+    this.refreshControlHints()
+  }
+
+  refreshControlHints () {
+    const c = this.state.settings.controls || DEFAULT_CONTROLS
+    const set = (sel, action) => { const el = document.querySelector(sel); if (el) el.textContent = bindingText(c[action]) }
+    set('#kbd-party', 'party'); set('#kbd-bag', 'bag'); set('#kbd-dex', 'dex')
+    set('#kbd-map', 'map'); set('#kbd-quests', 'quests'); set('#kbd-menu', 'menu')
+    set('#kbd-bag-battle', 'battleBag'); set('#kbd-party-battle', 'battleParty'); set('#kbd-run-battle', 'battleRun')
   }
 
   bind () {
@@ -120,10 +144,10 @@ export class UI {
     const feed = $('chat-feed')
     if (!feed) return
     feed.innerHTML = ''
-    this.addChat(null, 'Welcome to Pokéverse Online — every Pokémon, one world.', false, 'system')
-    this.addChat(null, 'Tip: talk to Professor Willow by the lab to begin your journey.', false, 'system')
-    setTimeout(() => this.addChat('Nova', 'new trainer just spawned in Willowbrook! say hi 👋'), 2500)
-    setTimeout(() => this.addChat('ShinyHunter', 'the global chat is live, all 1025 mons are in the wild'), 6000)
+    this.addChat(null, tr('Welcome to Pokéverse Online — every Pokémon, one world.'), false, 'system')
+    this.addChat(null, tr('Tip: talk to Professor Willow by the lab to begin your journey.'), false, 'system')
+    setTimeout(() => this.addChat('Nova', tr('new trainer just spawned in Willowbrook! say hi 👋')), 2500)
+    setTimeout(() => this.addChat('ShinyHunter', tr('the global chat is live, all 1025 mons are in the wild')), 6000)
   }
 
   addChat (name, text, self = false, type = '') {
@@ -144,9 +168,9 @@ export class UI {
         if (this.app.inBattle) { loop(); return }
         const r = Math.random()
         const name = CHAT_NAMES[Math.floor(Math.random() * CHAT_NAMES.length)]
-        if (r < .08) this.addChat(null, `${name} joined the world`, false, 'system')
-        else if (r < .13) this.addChat(null, `A shiny Pokémon was spotted in ${['Verdant Meadows','Frostpeak','Ember Caldera','Sunstone Desert'][Math.floor(Math.random() * 4)]}!`, false, 'system')
-        else this.addChat(name, CHAT_LINES[Math.floor(Math.random() * CHAT_LINES.length)])
+        if (r < .08) this.addChat(null, tr(`${name} joined the world`), false, 'system')
+        else if (r < .13) this.addChat(null, tr(`A shiny Pokémon was spotted in ${['Verdant Meadows','Frostpeak','Ember Caldera','Sunstone Desert'][Math.floor(Math.random() * 4)]}!`), false, 'system')
+        else this.addChat(name, tr(CHAT_LINES[Math.floor(Math.random() * CHAT_LINES.length)]))
         loop()
       }, delay)
     }
@@ -158,17 +182,17 @@ export class UI {
   tick () {
     const st = this.state
     if (!st.started) return
-    const t = $('hud-time'); if (t) t.textContent = timeString(st.clock)
+    const clockEl = $('hud-time'); if (clockEl) clockEl.textContent = timeLabel(st.clock)
     const weather = this.app.weather
     const w = $('hud-weather')
     if (w && weather) {
       const map = { clear:'☀ Clear', rain:'🌧 Rain', storm:'⛈ Storm', snow:'❄ Snow', ash:'🌋 Ashfall', fog:'🌫 Fog' }
-      w.textContent = map[weather.type] || '☀ Clear'
+      w.textContent = tr(map[weather.type] || '☀ Clear')
     }
     const online = 12840 + Math.floor(Math.sin(Date.now() / 60000) * 180) + (this.app.multiplayer?.peerCount || 0) * 3
     if ($('online-count')) $('online-count').textContent = fmt(online)
-    if ($('chat-online')) $('chat-online').textContent = fmt(online) + ' online'
-    const zone = this.app.world?.zoneName(Math.floor(st.pos.x), Math.floor(st.pos.y)) || 'Willowbrook Town'
+    if ($('chat-online')) $('chat-online').textContent = tr(fmt(online) + ' online')
+    const zone = tr(this.app.world?.zoneName(Math.floor(st.pos.x), Math.floor(st.pos.y)) || 'Willowbrook Town')
     if ($('hud-zone')) $('hud-zone').textContent = zone
     if ($('hud-region')) $('hud-region').textContent = zone
     this.drawMinimap()
@@ -180,11 +204,11 @@ export class UI {
     const lead = st.party[0]
     const leadSp = lead ? DEX_BY_ID.get(lead.id) : null
     if ($('hud-name')) $('hud-name').textContent = st.name
-    if ($('hud-level')) $('hud-level').textContent = lead ? 'Lv ' + lead.level : '—'
+    if ($('hud-level')) $('hud-level').textContent = lead ? t('hud.level') + ' ' + lead.level : '—'
     if ($('hud-money')) $('hud-money').textContent = fmt(st.money)
     if ($('hud-xp')) $('hud-xp').style.width = lead ? expProgress(lead) * 100 + '%' : '0%'
     const badges = $('hud-badges')
-    if (badges) badges.innerHTML = BADGES.map(b => `<span class="badge-dot ${st.badges.includes(b.id) ? 'earned' : ''}" style="--bc:${b.color}" title="${b.name}">${b.icon}</span>`).join('')
+    if (badges) badges.innerHTML = BADGES.map(b => `<span class="badge-dot ${st.badges.includes(b.id) ? 'earned' : ''}" style="--bc:${b.color}" title="${tr(b.name)}">${b.icon}</span>`).join('')
     this.drawAvatar()
     this.updateQuestCard()
     this.drawMinimap()
@@ -195,9 +219,9 @@ export class UI {
     const q = st.quest
     if (!q) return
     const key = st.questStep + '|' + st.caught.size + '|' + st.badges.join(',')
-    if ($('quest-title')) $('quest-title').textContent = q.title
-    if ($('quest-desc')) $('quest-desc').textContent = q.desc
-    if ($('quest-hint')) $('quest-hint').textContent = q.hint
+    if ($('quest-title')) $('quest-title').textContent = tr(q.title)
+    if ($('quest-desc')) $('quest-desc').textContent = tr(q.desc)
+    if ($('quest-hint')) $('quest-hint').textContent = tr(q.hint)
     let p = 0
     const step = st.questStep
     if (step === 0) p = 0
@@ -258,7 +282,7 @@ export class UI {
   toast (text, icon = '✦', type = '') {
     const stack = $('toast-stack')
     if (!stack) return
-    const t = el('div', 'toast ' + type, `<span class="t-icon">${icon}</span><span>${text}</span>`)
+    const t = el('div', 'toast ' + type, `<span class="t-icon">${icon}</span><span>${tr(text)}</span>`)
     stack.appendChild(t)
     while (stack.children.length > 4) stack.firstChild.remove()
     setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320) }, 3200)
@@ -290,7 +314,7 @@ export class UI {
     const p = $('interact-prompt')
     if (!p) return
     p.classList.remove('hidden')
-    $('interact-text').textContent = text
+    $('interact-text').textContent = tr(text)
   }
   hideInteract () { $('interact-prompt')?.classList.add('hidden') }
 
@@ -306,6 +330,7 @@ export class UI {
     $('modal-x').onclick = () => this.closeModal(onClose)
     this.modalLayer.onclick = (e) => { if (e.target === this.modalLayer) this.closeModal(onClose) }
     this.currentModal = { onClose }
+    localizeDom(this.modalLayer)
     return $('modal-body')
   }
 
@@ -376,6 +401,7 @@ export class UI {
       const mon = st.withdraw(b.dataset.boxmon)
       if (mon) { st.save(); this.refreshHUD(); this.renderParty($('modal-body')); this.toast(`${DEX_BY_ID.get(mon.id).name} joined your party!`, '◉', 'green') }
     }
+    localizeDom($('modal-body'))
   }
 
   openPC () {
@@ -395,6 +421,7 @@ export class UI {
         const mon = st.withdraw(btn.dataset.withdraw)
         if (mon) { st.save(); this.app.audio.sfx('select'); this.refreshHUD(); render(); this.toast(`${DEX_BY_ID.get(mon.id).name} joined your party!`, '◉', 'green') }
       }
+      localizeDom(b)
     }
     render()
     $('pc-party').onclick = () => { this.closeModal(); setTimeout(() => this.openParty(), 160) }
@@ -408,6 +435,7 @@ export class UI {
       title: `USE ITEM ON ${DEX_BY_ID.get(mon.id).name.toUpperCase()}`, sub: `${Math.round(mon.hp)}/${maxHp(mon)} HP${mon.status ? ' · ' + mon.status : ''}`,
       body: `<div class="bag-grid">${usable.map(([id, n]) => { const it = ITEMS[id]; return `<button class="item-card" data-use="${id}"><span class="item-icon">${it.icon}</span><div class="item-body"><div class="item-name">${it.name} <span class="item-count">×${n}</span></div><div class="item-desc">${it.desc}</div></div></button>` }).join('')}</div>`,
     })
+    localizeDom($('modal-body'))
     for (const b of $('modal-body').querySelectorAll('[data-use]')) b.onclick = () => {
       const id = b.dataset.use
       const ok = this.useItemOn(id, mon)
@@ -474,6 +502,7 @@ export class UI {
           return
         }
       }
+      localizeDom(b)
     }
     render()
     $('bag-shop').onclick = () => { this.closeModal(); setTimeout(() => this.openShop(), 150) }
@@ -509,6 +538,7 @@ export class UI {
       <div class="dex-grid" id="dex-grid"></div>
       <div class="dex-loading hidden" id="dex-loading">Loading…</div>
       <button class="btn btn-sm btn-ghost dex-more" id="dex-more">Load more</button>`
+    localizeDom(body)
     this.renderDex()
     $('dex-search').oninput = (e) => { this.dexFilter.search = e.target.value.toLowerCase(); this.dexLimit = 120; this.renderDex() }
     $('dex-type').onchange = (e) => { this.dexFilter.type = e.target.value; this.dexLimit = 120; this.renderDex() }
@@ -552,7 +582,8 @@ export class UI {
     for (const b of grid.querySelectorAll('[data-dex]')) b.onclick = () => this.openDexDetail(+b.dataset.dex)
     const more = $('dex-more')
     if (more) more.style.display = list.length > this.dexLimit ? '' : 'none'
-    if ($('dex-count-label')) $('dex-count-label').textContent = `${this.state.caught.size} / 1025 registered`
+    if ($('dex-count-label')) $('dex-count-label').textContent = tr(`${this.state.caught.size} / 1025 registered`)
+    localizeDom($('modal-body'))
   }
 
   openDexDetail (id) {
@@ -578,6 +609,7 @@ export class UI {
       ${evo.length ? `<div class="section-title">Evolution</div><div class="row" style="flex-wrap:wrap;gap:8px">${evo.map(e => { const t = DEX_BY_ID.get(e.id); return `<button class="pill" data-evo="${e.id}" style="display:flex;align-items:center;gap:6px;padding:5px 10px"><img src="assets/sprites/${e.id}.png" style="width:30px;height:30px;image-rendering:pixelated"> ${t.name} ${e.lvl ? `<span style="color:var(--muted)">Lv ${e.lvl}</span>` : e.item ? `<span style="color:var(--muted)">${e.item}</span>` : '<span style="color:var(--muted)">special</span>'}</button>` }).join('')}</div>` : ''}
       <div class="row" style="margin-top:14px"><span class="pill">Capture rate ${p.cr}</span><span class="pill">${caught ? 'Registered ✓' : 'Not caught'}</span></div>`,
     })
+    localizeDom(b)
     for (const e of b.querySelectorAll('[data-evo]')) e.onclick = () => this.openDexDetail(+e.dataset.evo)
   }
 
@@ -594,7 +626,8 @@ export class UI {
         const g = GYMS.find(g => g.town === t.id)
         return `<div class="map-town-row" data-town="${t.id}"><span class="badge-mini" style="background:${t.color}"></span>${t.name}<small>${g ? g.type + ' Gym' : 'Hub'}</small></div>`
       }).join('')}</div>
-      <div class="section-title">Badges</div><div class="row" style="flex-wrap:wrap;gap:5px">${BADGES.map(b => `<span class="badge-dot ${st.badges.includes(b.id) ? 'earned' : ''}" style="--bc:${b.color};width:22px;height:22px;font-size:11px" title="${b.name}">${b.icon}</span>`).join('')}</div></div></div>`
+      <div class="section-title">Badges</div><div class="row" style="flex-wrap:wrap;gap:5px">${BADGES.map(b => `<span class="badge-dot ${st.badges.includes(b.id) ? 'earned' : ''}" style="--bc:${b.color};width:22px;height:22px;font-size:11px" title="${tr(b.name)}">${b.icon}</span>`).join('')}</div></div></div>`
+    localizeDom(body)
     this.drawFullMap()
     $('map-clear').onclick = () => { this.waypoint = null; this.drawFullMap(); this.toast('Waypoint cleared.', '⌖'); this.tick() }
     $('map-close2').onclick = () => this.closeModal()
@@ -689,7 +722,8 @@ export class UI {
         return `<div class="quest-item"><div class="quest-icon">${claimed ? '✓' : done ? '!' : '◇'}</div><div class="quest-body"><div class="quest-title">${q.title}</div><div class="quest-desc">${q.desc}</div><div class="quest-reward">Reward: ₽${q.reward.money.toLocaleString()}${Object.entries(q.reward.items || {}).map(([id, n]) => ` · ${ITEMS[id]?.name} ×${n}`).join('')}</div></div>${claimed ? '<span class="quest-done">Claimed</span>' : done ? `<button class="quest-claim" data-claim="${q.id}">Claim</button>` : ''}</div>`
       }).join('')}</div>
       <div class="section-title">Badge Case</div>
-      <div class="row" style="flex-wrap:wrap;gap:8px">${BADGES.map(b => `<div class="pill" style="display:flex;align-items:center;gap:6px;${st.badges.includes(b.id) ? `border-color:${b.color};color:${b.color}` : 'opacity:.45'}"><span style="font-size:15px">${b.icon}</span>${b.name}</div>`).join('')}</div>`
+      <div class="row" style="flex-wrap:wrap;gap:8px">${BADGES.map(b => `<div class="pill" style="display:flex;align-items:center;gap:6px;${st.badges.includes(b.id) ? `border-color:${b.color};color:${b.color}` : 'opacity:.45'}"><span style="font-size:15px">${b.icon}</span>${tr(b.name)}</div>`).join('')}</div>`
+    localizeDom(body)
     $('q-close').onclick = () => this.closeModal()
     for (const b of body.querySelectorAll('[data-claim]')) b.onclick = () => {
       const q = SIDE_QUESTS.find(x => x.id === b.dataset.claim)
@@ -716,6 +750,7 @@ export class UI {
       }).join('')}`
       for (const b of $('modal-body').querySelectorAll('[data-buy]')) b.onclick = () => this.buy(b.dataset.buy, 1, render)
       for (const b of $('modal-body').querySelectorAll('[data-buy5]')) b.onclick = () => this.buy(b.dataset.buy5, 5, render)
+      localizeDom($('modal-body'))
     }
     render()
     $('shop-close').onclick = () => this.closeModal()
@@ -735,34 +770,98 @@ export class UI {
   openSettings () {
     const st = this.state
     const s = st.settings
+    const controls = s.controls || DEFAULT_CONTROLS
+    const group = (g) => `
+      <div class="control-group-title">${tr(g.title)}</div>
+      <div class="controls-grid">${g.actions.map(action => `
+        <button class="control-row rebind" data-rebind="${action}">
+          <span class="control-name">${t('control.' + action)}</span>
+          <kbd>${bindingText(controls[action])}</kbd>
+        </button>`).join('')}</div>`
     const body = this.openModal({
-      title: 'MENU', sub: `${st.name} · ${niceTime(st.playTime)} played`, size: 'narrow',
-      footer: `<span>World seed ${st.seed}</span><div class="row"><button class="btn btn-sm btn-danger" id="reset-save">Reset Save</button><button class="btn btn-sm btn-ghost" id="set-close">Resume</button></div>`,
+      title: t('settings.title'), sub: `${st.name} · ${tr(`${niceTime(st.playTime)} played`)}`, size: 'narrow',
+      footer: `<span>${tr(`World seed ${st.seed}`)}</span><div class="row"><button class="btn btn-sm btn-danger" id="reset-save">${t('settings.reset')}</button><button class="btn btn-sm btn-ghost" id="set-close">${t('settings.resume')}</button></div>`,
     })
     body.innerHTML = `
-      <div class="settings-row"><div><div class="settings-label">Music volume</div><div class="settings-desc">Procedural chiptune soundtrack</div></div><input type="range" id="set-music" min="0" max="1" step=".05" value="${s.music}" /></div>
-      <div class="settings-row"><div><div class="settings-label">Sound effects</div><div class="settings-desc">Battles, menus and pickups</div></div><input type="range" id="set-sfx" min="0" max="1" step=".05" value="${s.sfx}" /></div>
-      <div class="settings-row"><div><div class="settings-label">Mute all</div><div class="settings-desc">Silence the world</div></div><button class="switch ${s.muted ? 'on' : ''}" id="set-mute"></button></div>
-      <div class="settings-row"><div><div class="settings-label">Weather effects</div><div class="settings-desc">Rain, snow and ashfall particles</div></div><button class="switch ${s.weather !== false ? 'on' : ''}" id="set-weather"></button></div>
-      <div class="section-title">Controls</div>
-      <div class="controls-grid">
-        <div class="control-row"><kbd>WASD</kbd> Move</div><div class="control-row"><kbd>Shift</kbd> Sprint</div>
-        <div class="control-row"><kbd>E</kbd> Interact</div><div class="control-row"><kbd>1</kbd> Party</div>
-        <div class="control-row"><kbd>2</kbd> Bag</div><div class="control-row"><kbd>3</kbd> Pokédex</div>
-        <div class="control-row"><kbd>M</kbd> World map</div><div class="control-row"><kbd>Q</kbd> Journal</div>
-        <div class="control-row"><kbd>Esc</kbd> Menu</div><div class="control-row"><kbd>B</kbd> Bag in battle</div>
-      </div>
-      <div class="section-title">Journey Stats</div>
-      <div class="row" style="flex-wrap:wrap;gap:6px"><span class="pill">${st.stats.wins} wins</span><span class="pill">${st.stats.catches} catches</span><span class="pill">${st.stats.evolutions} evolutions</span><span class="pill">${st.stats.chests} chests</span><span class="pill">${st.stats.shinies} shiny</span><span class="pill">${fmt(st.stats.steps)} steps</span></div>
-      <div class="section-title">About</div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.6">Pokéverse Online is a fan-made browser MMORPG prototype. All 1,025 species, 18 types and 9 generations are present. Multiplayer is simulated locally with AI trainers and cross-tab presence. Pokémon © Nintendo / Creatures / GAME FREAK.</div>`
+      <div class="settings-row"><div><div class="settings-label">${t('settings.language')}</div><div class="settings-desc">${t('settings.languageDesc')}</div></div><div class="lang-picker" id="set-lang"><button data-setlang="en" class="${getLang() === 'en' ? 'active' : ''}">English</button><button data-setlang="fr" class="${getLang() === 'fr' ? 'active' : ''}">Français</button></div></div>
+      <div class="settings-row"><div><div class="settings-label">${t('settings.saveFile')}</div><div class="settings-desc">${t('settings.saveFileDesc')}</div></div><div class="row"><span class="pill">${t('title.file')} ${st.slot || 1}</span><button class="btn btn-sm btn-ghost" id="set-switch-slot">${t('settings.switchSave')}</button></div></div>
+      <div class="settings-row"><div><div class="settings-label">${t('settings.replayIntro')}</div><div class="settings-desc">${t('settings.controlsDesc')}</div></div><button class="btn btn-sm btn-ghost" id="set-replay-intro">${t('settings.replayIntro')}</button></div>
+      <div class="settings-row"><div><div class="settings-label">${t('settings.music')}</div><div class="settings-desc">${t('settings.musicDesc')}</div></div><input type="range" id="set-music" min="0" max="1" step=".05" value="${s.music}" /></div>
+      <div class="settings-row"><div><div class="settings-label">${t('settings.sfx')}</div><div class="settings-desc">${t('settings.sfxDesc')}</div></div><input type="range" id="set-sfx" min="0" max="1" step=".05" value="${s.sfx}" /></div>
+      <div class="settings-row"><div><div class="settings-label">${t('settings.mute')}</div><div class="settings-desc">${t('settings.muteDesc')}</div></div><button class="switch ${s.muted ? 'on' : ''}" id="set-mute"></button></div>
+      <div class="settings-row"><div><div class="settings-label">${t('settings.weather')}</div><div class="settings-desc">${t('settings.weatherDesc')}</div></div><button class="switch ${s.weather !== false ? 'on' : ''}" id="set-weather"></button></div>
+      <div class="section-title">${t('settings.controls')}</div>
+      <div class="settings-desc" style="margin:-4px 0 6px">${t('settings.controlsDesc')}</div>
+      <div id="control-groups">${CONTROL_GROUPS.map(group).join('')}</div>
+      <div class="row" style="margin-top:10px"><button class="btn btn-sm btn-ghost" id="set-reset-controls">${t('settings.resetControls')}</button></div>
+      <div class="section-title">${t('settings.stats')}</div>
+      <div class="row" style="flex-wrap:wrap;gap:6px"><span class="pill">${fmt(st.stats.wins)} ${t('settings.wins')}</span><span class="pill">${fmt(st.stats.catches)} ${t('settings.catches')}</span><span class="pill">${fmt(st.stats.evolutions)} ${t('settings.evolutions')}</span><span class="pill">${fmt(st.stats.chests)} ${t('settings.chests')}</span><span class="pill">${fmt(st.stats.shinies)} ${t('settings.shiny')}</span><span class="pill">${fmt(st.stats.steps)} ${t('settings.steps')}</span></div>
+      <div class="section-title">${t('settings.about')}</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.6">${t('settings.aboutText')}</div>`
+    localizeDom(body)
+    const rebind = (action) => {
+      const app = this.app
+      app.rebinding = true
+      const buttons = body.querySelectorAll('[data-rebind]')
+      const btn = body.querySelector(`[data-rebind="${action}"]`)
+      const old = btn.innerHTML
+      btn.classList.add('listening')
+      btn.innerHTML = `<span class="control-name">${t('control.' + action)}</span><kbd>${t('settings.pressKey')}</kbd>`
+      const done = (e) => {
+        e?.preventDefault?.()
+        e?.stopPropagation?.()
+        window.removeEventListener('keydown', onKey, true)
+        app.rebinding = false
+        btn.classList.remove('listening')
+        if (e && e.key !== 'Escape') {
+          const key = e.key.toLowerCase()
+          const next = cloneControlsForRebind(controls, action, key)
+          st.settings.controls = next
+          st.save()
+          this.refreshControlHints()
+          this.app.audio.sfx('select')
+          this.openSettings()
+        } else {
+          btn.innerHTML = old
+        }
+      }
+      const onKey = (e) => done(e)
+      window.addEventListener('keydown', onKey, true)
+      btn.onclick = (e) => { e.stopPropagation() }
+    }
+    for (const b of body.querySelectorAll('[data-rebind]')) b.onclick = (e) => { e.preventDefault(); rebind(b.dataset.rebind) }
+    for (const b of body.querySelectorAll('[data-setlang]')) b.onclick = () => {
+      setLang(b.dataset.setlang)
+      st.save()
+      this.refreshControlHints()
+      this.refreshHUD()
+      this.openSettings()
+      this.toast(t('lang.changed'), '🌐')
+    }
+    $('set-switch-slot').onclick = async () => {
+      if (await this.confirm(t('settings.switchSave'), t('save.switch'), t('settings.switchSave'))) {
+        st.save()
+        location.reload()
+      }
+    }
+    $('set-replay-intro').onclick = async () => {
+      this.closeModal()
+      await sleep(120)
+      await this.playIntro(st.name)
+    }
     $('set-music').oninput = (e) => { s.music = +e.target.value; this.app.audio.setVolumes(s.music, s.sfx, s.muted); st.save() }
     $('set-sfx').oninput = (e) => { s.sfx = +e.target.value; this.app.audio.setVolumes(s.music, s.sfx, s.muted); st.save() }
     $('set-mute').onclick = (e) => { s.muted = !s.muted; e.target.classList.toggle('on', s.muted); this.app.audio.setVolumes(s.music, s.sfx, s.muted); st.save() }
     $('set-weather').onclick = (e) => { s.weather = s.weather === false; e.target.classList.toggle('on', s.weather !== false); st.save() }
+    $('set-reset-controls').onclick = () => {
+      resetControls(st)
+      this.refreshControlHints()
+      this.app.audio.sfx('select')
+      this.openSettings()
+    }
     $('set-close').onclick = () => this.closeModal()
     $('reset-save').onclick = async () => {
-      if (await this.confirm('Reset your save?', 'This erases your party, Pokédex, badges and progress forever.')) {
+      if (await this.confirm(t('settings.reset'), t('save.delete'), t('settings.reset'))) {
         st.wipe(); location.reload()
       }
     }
@@ -775,6 +874,7 @@ export class UI {
         body: `<div class="empty-note">This cannot be undone.</div>`,
         footer: `<button class="btn btn-sm btn-ghost" id="cf-no">Cancel</button><button class="btn btn-sm btn-danger" id="cf-yes">${yes}</button>`,
       })
+      localizeDom(this.modalLayer)
       $('cf-no').onclick = () => { this.closeModal(); resolve(false) }
       $('cf-yes').onclick = () => { this.closeModal(); resolve(true) }
     })
@@ -782,7 +882,11 @@ export class UI {
 
   // ---------------- DIALOGUE ----------------
   showDialogue ({ name, text, choices = [], colors = null, onClose = null }) {
+    name = tr(name)
+    text = tr(text)
+    choices = choices.map(c => ({ ...c, label: tr(c.label) }))
     this.dialogueEl.classList.remove('hidden')
+    $('chat-panel')?.classList.add('dimmed')
     $('dlg-name').textContent = name
     $('dlg-text').textContent = ''
     const portrait = $('dlg-portrait')
@@ -807,7 +911,7 @@ export class UI {
         choicesEl.appendChild(b)
       }
       if (!choices.length) {
-        const b = el('button', 'dlg-choice', 'Continue')
+        const b = el('button', 'dlg-choice', t('modal.continue'))
         b.onclick = () => { this.hideDialogue(); onClose?.() }
         choicesEl.appendChild(b)
       }
@@ -821,6 +925,7 @@ export class UI {
   hideDialogue () {
     clearInterval(this._dlgTimer)
     this.dialogueEl.classList.add('hidden')
+    $('chat-panel')?.classList.remove('dimmed')
     this.app.dialogueOpen = false
     const cb = this.currentDialogue?.onClose
     this.currentDialogue = null
@@ -835,6 +940,7 @@ export class UI {
         body: `<div class="starter-picker">${opts.map(o => { const sp = DEX_BY_ID.get(o.id); return `<button class="starter-card" data-evo-pick="${o.id}"><img src="assets/sprites/${o.id}.png" alt=""><div class="starter-name">${sp.name}</div>${sp.t.map(t => `<span class="type-chip" style="background:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}<div class="starter-desc">${sp.cat}</div></button>` }).join('')}</div>`,
         footer: `<span>This choice is permanent.</span><button class="btn btn-sm btn-ghost" id="evo-cancel">Not now</button>`,
       })
+      localizeDom(this.modalLayer)
       for (const b of body.querySelectorAll('[data-evo-pick]')) b.onclick = () => { const id = +b.dataset.evoPick; this.closeModal(); resolve(id) }
       $('evo-cancel').onclick = () => { this.closeModal(); resolve(null) }
     })
@@ -843,7 +949,7 @@ export class UI {
   async evolutionAnimation (mon, targetId) {
     const oldSp = DEX_BY_ID.get(mon.id)
     const newSp = DEX_BY_ID.get(targetId)
-    const ov = el('div', 'evo-overlay', `<div class="evo-stage"><img class="evo-sprite" id="evo-img" src="assets/sprites/${mon.id}.png" alt=""><div class="evo-text" id="evo-text">What's happening?</div><div class="evo-sub" id="evo-sub">${oldSp.name} is evolving…</div></div>`)
+    const ov = el('div', 'evo-overlay', `<div class="evo-stage"><img class="evo-sprite" id="evo-img" src="assets/sprites/${mon.id}.png" alt=""><div class="evo-text" id="evo-text">${tr("What's happening?")}</div><div class="evo-sub" id="evo-sub">${tr(`${oldSp.name} is evolving…`)}</div></div>`)
     document.body.appendChild(ov)
     this.app.audio.sfx('evolve')
     await new Promise(r => setTimeout(r, 1600))
@@ -853,8 +959,8 @@ export class UI {
     this.state.recordCaught(targetId, mon)
     const img = document.getElementById('evo-img')
     if (img) img.src = `assets/sprites/${targetId}.png`
-    const txt = document.getElementById('evo-text'); if (txt) txt.textContent = 'Congratulations!'
-    const sub = document.getElementById('evo-sub'); if (sub) sub.textContent = `${oldSp.name} evolved into ${newSp.name}!`
+    const txt = document.getElementById('evo-text'); if (txt) txt.textContent = tr('Congratulations!')
+    const sub = document.getElementById('evo-sub'); if (sub) sub.textContent = tr(`${oldSp.name} evolved into ${newSp.name}!`)
     this.app.audio.sfx('level')
     this.state.save(); this.refreshHUD()
     await new Promise(r => setTimeout(r, 2200))
@@ -865,7 +971,7 @@ export class UI {
 
   // ---------------- CELEBRATIONS ----------------
   badgeCelebration (badge) {
-    const ov = el('div', 'evo-overlay', `<div class="evo-stage"><div style="font-size:80px;filter:drop-shadow(0 0 30px ${badge.color})">${badge.icon}</div><div class="evo-text" style="color:${badge.color}">${badge.name} earned!</div><div class="evo-sub">${badge.leader} · ${badge.town}</div></div>`)
+    const ov = el('div', 'evo-overlay', `<div class="evo-stage"><div style="font-size:80px;filter:drop-shadow(0 0 30px ${badge.color})">${badge.icon}</div><div class="evo-text" style="color:${badge.color}">${tr(`${badge.name} earned!`)}</div><div class="evo-sub">${badge.leader} · ${tr(badge.town)}</div></div>`)
     ov.style.background = `radial-gradient(circle, ${hexAlpha(badge.color, .3)}, rgba(4,6,14,.94))`
     ov.style.pointerEvents = 'none'
     document.body.appendChild(ov)
@@ -881,6 +987,7 @@ export class UI {
       body: `<div class="center"><div style="font-size:80px;filter:drop-shadow(0 0 40px #f4c95d)">🏆</div><h2 style="margin:8px 0 4px;color:var(--gold)">${st.name} is the Champion!</h2><p style="color:var(--muted);font-size:12px;line-height:1.6">Six badges. 1,025 species waiting in the wild. The Pokéverse is yours to explore.<br>Your team, your story, your legend.</p><div class="row" style="justify-content:center;flex-wrap:wrap;gap:6px;margin-top:12px"><span class="pill">${st.caught.size} caught</span><span class="pill">${st.stats.wins} wins</span><span class="pill">${niceTime(st.playTime)} played</span></div></div>`,
       footer: `<span>Keep exploring — mythic rifts await.</span><button class="btn btn-sm btn-primary" id="champ-close">Continue</button>`,
     })
+    localizeDom(this.modalLayer)
     $('champ-close').onclick = () => this.closeModal()
   }
 
@@ -888,6 +995,57 @@ export class UI {
     const sp = DEX_BY_ID.get(id)
     if (!sp) return
     this.toast(`New Pokédex entry: #${String(id).padStart(4, '0')} ${sp.name}!`, '▤', 'gold')
+  }
+
+  // ---------------- INTRO ----------------
+  playIntro (name = 'Trainer') {
+    return new Promise(resolve => {
+      const screen = $('intro')
+      if (!screen) return resolve()
+      const textEl = $('intro-text'), dotsEl = $('intro-dots'), nextBtn = $('intro-next'), skipBtn = $('intro-skip')
+      const slides = [t('intro.slide1'), t('intro.slide2'), t('intro.slide3'), t('intro.slide4', { name })]
+      let index = 0, timer = null, typing = false, full = '', done = false
+      screen.classList.remove('hidden')
+      requestAnimationFrame(() => screen.classList.add('on'))
+      this.app.audio.sfx('open')
+      const paintDots = () => { dotsEl.innerHTML = slides.map((_, i) => `<i class="${i === index ? 'on' : ''}"></i>`).join('') }
+      const type = () => {
+        full = slides[index]
+        textEl.textContent = ''
+        typing = true
+        let i = 0
+        clearInterval(timer)
+        timer = setInterval(() => {
+          textEl.textContent = full.slice(0, ++i)
+          if (i >= full.length) { clearInterval(timer); typing = false }
+        }, 22)
+        paintDots()
+        nextBtn.textContent = index === slides.length - 1 ? t('intro.start') : t('intro.next')
+        skipBtn.textContent = t('intro.skip')
+      }
+      const finish = () => {
+        if (done) return
+        done = true
+        clearInterval(timer)
+        window.removeEventListener('keydown', onKey)
+        screen.classList.remove('on')
+        setTimeout(() => { screen.classList.add('hidden'); resolve() }, 420)
+      }
+      const next = () => {
+        if (typing) { clearInterval(timer); textEl.textContent = full; typing = false; return }
+        if (index < slides.length - 1) { index++; this.app.audio.sfx('click'); type() }
+        else finish()
+      }
+      const onKey = (e) => {
+        if (e.key === 'Escape') { e.preventDefault(); finish() }
+        else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); next() }
+      }
+      nextBtn.onclick = next
+      skipBtn.onclick = finish
+      textEl.onclick = next
+      window.addEventListener('keydown', onKey)
+      type()
+    })
   }
 
   // ---------------- STARTER ----------------
@@ -906,8 +1064,9 @@ export class UI {
           const sp = DEX_BY_ID.get(id)
           return `<button class="starter-card ${id === selected ? 'selected' : ''}" data-starter="${id}"><span class="starter-check">✓</span><img src="assets/sprites/${id}.png" alt=""><div class="starter-name">${sp.name}</div><div>${sp.t.map(t => `<span class="type-chip" style="background:${TYPE_COLORS[t]}">${t}</span>`).join(' ')}</div><div class="starter-desc">${descs[id]}</div><div class="starter-stats">${sp.s.map(v => `<i class="${v >= 60 ? 'on' : ''}"></i>`).join('')}</div></button>`
         }).join('')}</div>`,
-        footer: `<span>You can catch all 1,025 species in the wild.</span><button class="btn btn-primary" id="starter-go">Begin Adventure ▶</button>`,
+        footer: `<span>You can catch all 1,025 species in the wild.</span><button class="btn btn-primary" id="starter-go">${t('starter.go')}</button>`,
       })
+      localizeDom(this.modalLayer)
       const sel = (id) => {
         selected = id
         for (const b of document.querySelectorAll('[data-starter]')) b.classList.toggle('selected', +b.dataset.starter === id)
