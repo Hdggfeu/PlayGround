@@ -77,7 +77,8 @@ export function newGame(profile, starterId) {
       introDone: true, professorFriend: true, megaUnlocked: false, templionGift: false,
       fourthBadgeSeen: false, legendsDone: false, islandsUnlocked: false,
       towerProgress: 0, towerDone: false, champion: false, endingSeen: false,
-      sanctuaryUnlocked: false, talkedToProfessor: false, firstBattleWon: false
+      sanctuaryUnlocked: false, talkedToProfessor: false, firstBattleWon: false,
+      tutorialStep: 0, tutorialDone: false
     },
     legends: { latias: false, latios: false, rayquaza: false },
     seen: { [starterId]: true },
@@ -94,6 +95,8 @@ export function sanitizeSave(raw) {
   if (!raw || typeof raw !== 'object') return null
   if (!raw.profile || !Array.isArray(raw.team) || !raw.team.length) return null
   raw.flags ||= {}
+  raw.flags.tutorialStep ??= 0
+  raw.flags.tutorialDone ??= false
   raw.legends ||= { latias: false, latios: false, rayquaza: false }
   raw.items ||= {}
   raw.friends ||= []
@@ -135,6 +138,8 @@ export function resetSave() {
 }
 
 export function hasBadge(id) { return G.save?.badges.includes(id) }
+
+export function hasOnlineAccess() { return (G.save?.badges.length || 0) >= 1 }
 
 export function addBadge(id) {
   if (!G.save || G.save.badges.includes(id)) return false

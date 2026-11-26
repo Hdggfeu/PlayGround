@@ -126,8 +126,11 @@ function battleHTML(B) {
 
 async function showSplash(B) {
   const c = B.config
-  const enemyName = c.trainer ? c.trainer.name : SPECIES[B.enemyTeam[0].species].name
-  const sub = c.kind === 'wild' ? 'Rencontre sauvage' : c.kind === 'legendary' ? 'Une légende s’éveille' : 'Combat de dresseur'
+  const firstSpecies = SPECIES[B.enemyTeam[0].species]
+  const enemyName = c.trainer ? c.trainer.name : firstSpecies.name
+  const sub = c.kind === 'wild'
+    ? (firstSpecies.gen ? `Rencontre sauvage · ${firstSpecies.gen}G ${firstSpecies.region}` : 'Rencontre sauvage')
+    : c.kind === 'legendary' ? 'Une légende s’éveille' : 'Combat de dresseur'
   B.splashEl.innerHTML = `<div class="splash-inner">
     <div class="splash-vs">VS</div>
     <div class="splash-names"><span>${escapeHTML(G.save.profile.name)}</span><i>✦</i><span>${escapeHTML(enemyName)}</span></div>
@@ -156,7 +159,7 @@ function updateHUD(B) {
   const epct = Math.max(0, e.hp / emax) * 100, ppct = Math.max(0, p.hp / pmax) * 100
   B.enemyCard.innerHTML = `
     <div class="info-head"><strong>${escapeHTML(es.name)}</strong><span>Nv. ${e.level}</span></div>
-    <div class="type-row">${es.types.map(t => `<span class="type-chip small" style="--tc:${TYPE_COLORS[t]}">${TYPE_ICONS[t] || ''} ${escapeHTML(t)}</span>`).join('')}</div>
+    <div class="type-row">${es.types.map(t => `<span class="type-chip small" style="--tc:${TYPE_COLORS[t]}">${TYPE_ICONS[t] || ''} ${escapeHTML(t)}</span>`).join('')}${SPECIES[e.species].gen ? `<span class="gen-chip" title="Visiteur de ${escapeHTML(SPECIES[e.species].region)}">${SPECIES[e.species].gen}G</span>` : ''}</div>
     <div class="hp-line ${hpClass(epct / 100)}"><div class="hp-track"><div class="hp-fill" style="width:${epct}%"></div></div></div>
     ${e.status ? `<span class="status-chip ${e.status}">${statusName(e.status)}</span>` : ''}`
   B.allyCard.innerHTML = `

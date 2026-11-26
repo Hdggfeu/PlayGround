@@ -1,6 +1,6 @@
 import {
   LOCATIONS, LOCATION_ORDER, LEADERS, MASTER, RED_TRAINING, BLUE_TRAINING, ISLAND_TOWER,
-  BADGES, SPECIES, TYPE_COLORS, TYPE_ICONS, ITEMS
+  BADGES, SPECIES, TYPE_COLORS, TYPE_ICONS, ITEMS, wildTableFor
 } from './data.js'
 import {
   G, persist, addBadge, hasBadge, addItem, healTeam, healOne, createMonster, addMonster,
@@ -97,6 +97,7 @@ export class World {
     this.dust = []
     this.encounterCooldown = 0
     this.grassDistance = 0
+    this.moveNotify = 0
     this.busy = false
     this.sand = Array.from({ length: 34 }, () => ({ x: Math.random(), y: Math.random(), s: .4 + Math.random() }))
     this.bind()
@@ -115,7 +116,7 @@ export class World {
       if (e.repeat) return
       this.keys.add(k)
       if (k === 'e' || k === ' ') this.interact()
-      if (['m', 'c', 'p', 'f', 'o', 'b', 'escape', 'h'].includes(k) && !this.isPaused()) {
+      if (['m', 'c', 'p', 'f', 'o', 'b', 'k', 'escape', 'h'].includes(k) && !this.isPaused()) {
         this.opts.onMenu?.(k)
       }
     })
@@ -635,6 +636,7 @@ export class World {
     } catch (e) { console.error(e) }
     this.busy = false
     this.encounterCooldown = Math.max(this.encounterCooldown, .8)
+    this.opts.onEvent?.('interact', { type: p.type })
     this.updatePrompt(true)
   }
 
@@ -660,7 +662,7 @@ export class World {
     if (npc.friendable && !isFriend(npc.id)) {
       const choice = await Dialog.show({
         speaker: npc.name, avatar: npcAvatar(npc), color: npc.color,
-        text: `Tu es quelqu’un de bien. Veux-tu devenir mon ami ? On pourra s’écrire quand le online rouvrira.`,
+        text: `Tu es quelqu’un de bien. Veux-tu devenir mon ami ? On pourra s’écrire sur Poke Online dès que tu auras un badge.`,
         choices: [{ label: 'Oui, devenons amis', value: 'yes', sub: '+1 ami' }, { label: 'Plus tard', value: 'no' }]
       })
       if (choice === 'yes') {
@@ -756,7 +758,7 @@ export class World {
     if (s.flags.champion) {
       await Dialog.show([
         { speaker: 'Professeur Sable', portrait: professorSVG(), text: 'Champion de Templier... Tu réalises ? Mille ans de sable, et c’est ton nom que le désert retient aujourd’hui.' },
-        { speaker: 'Professeur Sable', portrait: professorSVG(), text: 'Poke Online MMO rouvrira bientôt. Le monde entier pourra voir ta carte de dresseur. Je suis fier de toi, mon ami.' }
+        { speaker: 'Professeur Sable', portrait: professorSVG(), text: 'Poke Online MMO alpha 1.0 est ouvert. Le monde entier peut voir ta carte de dresseur, tes badges et tes amis. Je suis fier de toi, mon ami.' }
       ])
       healTeam()
       return
@@ -810,6 +812,7 @@ export class World {
         const b = BADGES.find(x => x.id === badge)
         G.save.money += 500 + loc.order * 250
         sfx('badge')
+        this.opts.onEvent?.('badge', { badge, count: G.save.badges.length })
         await Dialog.show([
           { speaker: leader.name, avatar: leader.avatar, color: leader.color, text: leader.defeat },
           { speaker: 'Badge obtenu', portrait: `<div class="dialog-badge">${badgeSVG(b.color, b.glyph, 74)}</div>`, text: `${b.name} ! ${G.save.badges.length} badge${G.save.badges.length > 1 ? 's' : ''} sur 8.` }
@@ -957,7 +960,7 @@ export class World {
       { speaker: MASTER.name, avatar: MASTER.avatar, color: MASTER.color, text: MASTER.defeat },
       { speaker: 'Professeur Sable', portrait: professorSVG(), text: 'Tu l’as fait. Champion de Templier. Mille ans de sable, et te voilà.' },
       { speaker: 'Professeur Sable', portrait: professorSVG(), text: 'Tu sais, avant les villes, avant les arènes, il n’y avait que du sable. J’y ai trouvé une graine. Puis une idée. Puis toi, et tous les autres.' },
-      { speaker: 'Professeur Sable', portrait: professorSVG(), text: 'Poke Online MMO rouvrira le 9 décembre. Le monde verra ta carte de dresseur, tes badges, tes amis. Et moi, je verrai mon rêve marcher.' },
+      { speaker: 'Professeur Sable', portrait: professorSVG(), text: 'Poke Online MMO alpha 1.0 est ouvert depuis ton premier badge. Le monde voit ta carte de dresseur, tes badges, tes amis. Et moi, je vois mon rêve marcher.' },
       { speaker: 'Professeur Sable', portrait: professorSVG(), text: 'Bonne chance, Champion. Le désert est à toi.' }
     ])
     const modal = openModal({
@@ -1073,6 +1076,8 @@ export class World {
       if (this.canStand(p.x, ny)) p.y = ny
       p.walk += dt * 1.7
       this.grassDistance += p.speed * dt
+      this.moveNotify -= dt
+      if (this.moveNotify <= 0) { this.moveNotify = 1.4; this.opts.onEvent?.('move') }
       if (Math.random() < dt * 6) this.dust.push({ x: p.x + (Math.random() - .5) * 10, y: p.y + 6, vx: (Math.random() - .5) * 16, vy: -10 - Math.random() * 12, life: .55, max: .55, c: this.loc.palette.accent })
       if (this.grassDistance > 40) {
         this.grassDistance = 0
@@ -1113,7 +1118,8 @@ export class World {
     const tx = Math.floor(this.player.x / TS), ty = Math.floor(this.player.y / TS)
     if (this.tiles[ty]?.[tx] !== 6) return
     if (Math.random() > .12) return
-    const entry = this.loc.wild[Math.floor(Math.random() * this.loc.wild.length)]
+    const table = wildTableFor(this.loc)
+    const entry = table[Math.floor(Math.random() * table.length)]
     const [species, min, max] = entry
     const level = min + Math.floor(Math.random() * (max - min + 1))
     this.startWildEncounter(species, level)
@@ -1122,6 +1128,7 @@ export class World {
   async startWildEncounter(species, level) {
     this.busy = true
     this.encounterCooldown = 3
+    this.opts.onEvent?.('encounter', { species, level, gen: SPECIES[species]?.gen || 0 })
     const res = await startBattle({
       kind: 'wild', wild: { species, level }, theme: THEME[this.loc.id], palette: this.loc.palette,
       rewardMoney: 20 + level * 4, canCatch: true

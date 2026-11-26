@@ -1,10 +1,11 @@
 import {
-  BADGES, ITEMS, LOCATIONS, LOCATION_ORDER, ONLINE_RANKS, SPECIES, TYPE_COLORS, TYPE_ICONS, AI_NAMES, MOVES
+  BADGES, ITEMS, LOCATIONS, LOCATION_ORDER, ONLINE_RANKS, SPECIES, TYPE_COLORS, TYPE_ICONS, AI_NAMES, MOVES,
+  GENERATIONS
 } from './data.js'
 import {
   G, persist, escapeHTML, statsOf, displaySpecies, toast, objective, locationUnlocked,
   rankInfo, nextRank, formatPlaytime, addItem, takeItem, healOne, healTeam, itemCount, allItems,
-  saveTimeAgo, isFriend, addFriend, maxTeamLevel
+  saveTimeAgo, isFriend, addFriend, maxTeamLevel, createMonster, hasOnlineAccess
 } from './state.js'
 import { drawCreature, playerAvatarSVG, leaderAvatarSVG, professorSVG, badgeSVG, ballSVG } from './art.js'
 
@@ -701,36 +702,106 @@ export function showFriends(onFriendBattle) {
 }
 
 // ---------------------------------------------------------------------------
-// Online / league
+// Pokédex 1G → 9G
 // ---------------------------------------------------------------------------
-function maintenanceTarget() {
-  const now = new Date()
-  let target = new Date(now.getFullYear(), 11, 9, 10, 0, 0)
-  if (target < now) target = new Date(now.getFullYear() + 1, 11, 9, 10, 0, 0)
-  return target
+export function showDex() {
+  const s = G.save
+  if (!s) return
+  let active = 'all'
+  const all = Object.values(SPECIES)
+  const render = () => {
+    const wrap = document.querySelector('.dex-modal .modal-body')
+    if (!wrap) return
+    const list = all
+      .filter(sp => active === 'all' || (active === 'templier' ? !sp.gen : sp.gen === Number(active)))
+      .sort((a, b) => (a.gen || 0) - (b.gen || 0) || a.name.localeCompare(b.name, 'fr'))
+    const seenCount = all.filter(sp => s.seen[sp.id]).length
+    const caughtCount = all.filter(sp => s.caught[sp.id]).length
+    const tabs = [{ id: 'all', label: 'Tous' }, { id: 'templier', label: 'Templier' }, ...GENERATIONS.map(g => ({ id: String(g.gen), label: `${g.label} · ${g.region}` }))]
+    wrap.innerHTML = `
+      <div class="dex-toolbar">
+        <div class="dex-tabs">${tabs.map(t => `<button class="dex-tab ${active === t.id ? 'active' : ''}" data-dex-tab="${t.id}">${t.label}</button>`).join('')}</div>
+        <span class="dex-count"><b>${seenCount}</b> vus · <b>${caughtCount}</b> capturés · ${all.length} espèces</span>
+      </div>
+      <div class="dex-grid">
+        ${list.map(sp => {
+          const seen = !!s.seen[sp.id]
+          const caught = !!s.caught[sp.id]
+          const gen = sp.gen ? `${sp.gen}G · ${sp.region}` : 'Templier'
+          return `<div class="dex-card ${caught ? 'caught' : seen ? 'seen' : 'unseen'}" title="${escapeHTML(seen ? sp.name : 'Pokémon non rencontré')}">
+            <span class="dex-art"><canvas width="108" height="108" style="width:54px;height:54px" data-species="${sp.id}"></canvas></span>
+            <span class="dex-info">
+              <strong>${seen ? escapeHTML(sp.name) : '???'}</strong>
+              <small>${gen}</small>
+              ${seen ? `<span class="type-row">${sp.types.map(t => `<span class="type-chip" style="--tc:${TYPE_COLORS[t]}">${TYPE_ICONS[t] || ''} ${escapeHTML(t)}</span>`).join('')}</span>` : '<small>Rencontre-le dans les herbes.</small>'}
+            </span>
+            <span class="dex-status">${caught ? '✓' : seen ? '👁' : '·'}</span>
+          </div>`
+        }).join('')}
+      </div>
+      <p class="dex-note"><strong>Visiteurs des 9 générations :</strong> les Pokémon venus de Kanto à Paldea apparaissent dans les herbes de Templier. La génération à l’honneur change chaque heure, et chaque village a ses favoris. Les sprites sont dessinés en procédural, sans asset externe.</p>`
+    paintThumbs(wrap)
+    wrap.querySelectorAll('[data-dex-tab]').forEach(el => el.addEventListener('click', () => {
+      active = el.dataset.dexTab
+      render()
+    }))
+  }
+  openModal({
+    title: 'Pokédex de Templier · 1G → 9G', icon: '📘', wide: true, className: 'dex-modal',
+    content: '', onMount: render
+  })
 }
 
-function countdownParts() {
-  const diff = Math.max(0, maintenanceTarget() - Date.now())
-  const d = Math.floor(diff / 86400000)
-  const h = Math.floor((diff % 86400000) / 3600000)
-  const m = Math.floor((diff % 3600000) / 60000)
-  const sec = Math.floor((diff % 60000) / 1000)
-  return { d, h, m, sec }
-}
-
+// ---------------------------------------------------------------------------
+// Online / league — alpha 1.0, unlocked with the first badge
+// ---------------------------------------------------------------------------
 export function showOnline({ onLeagueBattle }) {
   const s = G.save
+  if (!s) return
+  const access = hasOnlineAccess()
+
+  if (!access) {
+    openModal({
+      title: 'Poke Online MMO · alpha 1.0', icon: '🌐', wide: true, className: 'online-modal',
+      content: `<div class="alpha-banner">
+          <div class="ab-icon">🌐</div>
+          <div><strong>Alpha 1.0 prête à s’ouvrir</strong><small>Ligue, chat et échanges. Un seul badge suffit.</small></div>
+          <span class="alpha-badge">alpha 1.0</span>
+        </div>
+        <div class="online-locked">
+          <div class="lock-orb">🔒</div>
+          <h3>Un badge, et le monde te voit</h3>
+          <p>Poke Online MMO alpha 1.0 se déverrouille dès ton <strong>premier badge</strong>. Bats le Champion de Sablonville, puis reviens ici avec <strong>O</strong>.</p>
+          <div class="online-badge-req"><span class="req-dot"></span>${s.badges.length}/1 badge · accès verrouillé</div>
+        </div>
+        <p class="muted small">Le Professeur Sable : « Le sable garde les secrets, mais un badge ouvre toutes les portes. »</p>`
+    })
+    return
+  }
+
   const rank = rankInfo()
   const next = nextRank()
-  const parts = countdownParts()
-  const tab = 'league'
-  const render = (active = tab) => {
+  const friends = s.friends.filter(f => f.kind !== 'professor')
+  const chat = [
+    { who: 'Système', text: `Bienvenue dans l’alpha 1.0, ${s.profile.name}. Salon « Place de Sablonville ».`, system: true },
+    ...friends.slice(0, 3).map(f => ({ who: f.name, text: f.quote || 'Content de te voir connecté !' }))
+  ]
+  const replies = [
+    'Bien joué pour ton badge ! On se croise bientôt sur la route.',
+    'Tu as vu les visiteurs 9G dans les herbes ? Ils sont incroyables.',
+    'Je t’attends pour un échange dès que tu veux.',
+    'La Ligue alpha est rude aujourd’hui. Entraîne-toi avant de lancer un combat.',
+    'Le Professeur Sable dit que le sable se souvient de tout. Même de nos défaites.'
+  ]
+  let tradeMon = s.team[0]?.uid || null
+  let tradeFriend = friends[0]?.id || null
+  const tradePool = Object.keys(SPECIES).filter(id => !['latias', 'latios', 'rayquaza'].includes(id))
+
+  const render = (active = 'league') => {
     const wrap = document.querySelector('.online-modal .modal-body')
     if (!wrap) return
     const rankIndex = ONLINE_RANKS.findIndex(r => r.id === rank.id)
     const prev = ONLINE_RANKS[rankIndex]
-    const nextGoal = next ? next.min : prev.min
     const span = next ? next.min - prev.min : 1
     const prog = next ? Math.min(100, ((s.online.points - prev.min) / span) * 100) : 100
     const tabs = `<div class="tab-row">
@@ -748,32 +819,109 @@ export function showOnline({ onLeagueBattle }) {
           <div class="rank-record"><span><b>${s.online.wins}</b> victoires</span><span><b>${s.online.losses}</b> défaites</span></div>
         </div>
         <div class="league-info">
-          <div class="info-tile"><span>Adversaire</span><strong>IA de secours</strong><small>File d’attente faible</small></div>
+          <div class="info-tile"><span>Adversaire</span><strong>Dresseur alpha</strong><small>IA locale de secours</small></div>
           <div class="info-tile"><span>Format</span><strong>${rank.teamSize} contre ${rank.teamSize}</strong><small>Niveau ~${rank.level}</small></div>
           <div class="info-tile"><span>Récompense</span><strong>+1 point</strong><small>et des pièces</small></div>
         </div>
         <button class="btn gold full big" id="league-fight">Chercher un combat de Ligue</button>
-        <p class="muted small">Le multijoueur en ligne est en maintenance. La Ligue utilise une IA de secours pour que personne ne reste sans adversaire. Ton pseudo <strong>${escapeHTML(s.profile.name)}</strong> sera visible à la réouverture.</p>`
+        <p class="muted small">Alpha 1.0 : les adversaires sont simulés localement, sans serveur. Ton pseudo <strong>${escapeHTML(s.profile.name)}</strong> et tes badges sont visibles dans le salon.</p>`
     } else if (active === 'chat') {
-      body = `<div class="locked-feature"><div class="lock-orb">💬</div><h3>Chat en maintenance</h3><p>Le chat entre amis ouvrira le <strong>9 décembre</strong>. Le Professeur Sable peaufine les filtres et les salons de village.</p>
-        <div class="fake-chat"><div class="chat-line"><b>Système</b> Le salon « Place de Sablonville » sera disponible à la réouverture.</div></div>
-        <div class="disabled-input">Écrire un message… <span>🔒</span></div></div>`
+      body = `<div class="alpha-banner compact">
+          <div class="ab-icon">💬</div>
+          <div><strong>Salon « Place de Sablonville »</strong><small>${friends.length + 1} dresseurs connectés · alpha 1.0</small></div>
+        </div>
+        <div class="chat-log">${chat.map(m => `<div class="chat-line ${m.me ? 'me' : ''} ${m.system ? 'system' : ''}"><b>${escapeHTML(m.who)}</b><span>${escapeHTML(m.text)}</span></div>`).join('')}</div>
+        <div class="chat-compose">
+          <input id="chat-input" maxlength="120" placeholder="Écrire un message…" autocomplete="off">
+          <button class="btn gold" id="chat-send">Envoyer</button>
+        </div>
+        <p class="muted small">Les réponses des amis sont simulées. Le chat réel arrivera dans une prochaine alpha.</p>`
     } else {
-      body = `<div class="locked-feature"><div class="lock-orb">🔄</div><h3>Échanges en maintenance</h3><p>Les échanges sécurisés arrivent avec la réouverture. En attendant, tu peux confier tes Pokémon à la boîte de stockage.</p>
-        <div class="trade-preview"><div class="trade-side"><span>Toi</span><div class="trade-ball">${ballSVG('#f0c96b', 40)}</div></div><div class="trade-arrows">⇄</div><div class="trade-side"><span>Ami</span><div class="trade-ball">${ballSVG('#8ecae6', 40)}</div></div></div>
-        <div class="disabled-input">Proposer un échange… <span>🔒</span></div></div>`
+      const mon = s.team.find(m => m.uid === tradeMon)
+      const friend = friends.find(f => f.id === tradeFriend)
+      body = `<div class="alpha-banner compact">
+          <div class="ab-icon">🔄</div>
+          <div><strong>Échange sécurisé</strong><small>Choisis un Pokémon et un ami. L’échange est simulé localement.</small></div>
+        </div>
+        <div class="trade-live">
+          <div class="trade-col">
+            <span class="eyebrow">Ton Pokémon</span>
+            ${s.team.map(m => `<button class="trade-mon ${m.uid === tradeMon ? 'active' : ''}" data-trade-mon="${m.uid}">${monThumb(m, 38)}<span><strong>${escapeHTML(displaySpecies(m).name)}</strong><small>Nv. ${m.level}</small></span></button>`).join('')}
+          </div>
+          <div class="trade-swap">⇄</div>
+          <div class="trade-col">
+            <span class="eyebrow">Ami</span>
+            ${friends.length ? friends.map(f => `<button class="trade-mon ${f.id === tradeFriend ? 'active' : ''}" data-trade-friend="${f.id}"><span class="friend-avatar generic" style="--c:${f.color || '#8ecae6'}"><span>${escapeHTML((f.name || '?')[0])}</span></span><span><strong>${escapeHTML(f.name)}</strong><small>${escapeHTML(f.role || 'Ami')}</small></span></button>`).join('') : '<p class="muted small">Rencontre des habitants et deviens leur ami pour échanger.</p>'}
+          </div>
+        </div>
+        <button class="btn gold full big" id="trade-go" ${s.team.length < 2 || !friend || !mon ? 'disabled' : ''}>Proposer l’échange${mon ? ` · ${escapeHTML(displaySpecies(mon).name)}` : ''}</button>
+        <p class="muted small">${s.team.length < 2 ? 'Il te faut au moins deux Pokémon dans ton équipe.' : friend ? `L’échange se fera avec ${escapeHTML(friend.name)}. Ton Pokémon sera remplacé par une espèce de niveau équivalent.` : 'Choisis un ami pour continuer.'}</p>`
     }
-    wrap.innerHTML = `<div class="maintenance-banner"><span class="maint-dot"></span><div><strong>Multijoueur en maintenance</strong><small>Réouverture prévue le 9 décembre · ${parts.d}j ${String(parts.h).padStart(2, '0')}h ${String(parts.m).padStart(2, '0')}m</small></div><span class="maint-lock">🔧</span></div>
+    wrap.innerHTML = `<div class="alpha-banner">
+        <div class="ab-icon">🌐</div>
+        <div><strong>Poke Online MMO · alpha 1.0</strong><small>Serveurs simulés localement · accès débloqué par ${s.badges.length} badge${s.badges.length > 1 ? 's' : ''}</small></div>
+        <span class="alpha-badge">alpha 1.0</span>
+      </div>
       ${tabs}${body}
-      <div class="online-footer"><span>Pseudo visible : <b>${escapeHTML(s.profile.name)}</b></span><span>Ligue hors-ligne disponible</span></div>`
+      <div class="online-footer"><span>Pseudo visible : <b>${escapeHTML(s.profile.name)}</b></span><span>${s.badges.length}/8 badges · ${friends.length} amis</span></div>`
+
     wrap.querySelectorAll('[data-tab]').forEach(el => el.addEventListener('click', () => render(el.dataset.tab)))
     wrap.querySelector('#league-fight')?.addEventListener('click', () => {
       closeModal()
       onLeagueBattle?.()
     })
+
+    if (active === 'chat') {
+      const input = wrap.querySelector('#chat-input')
+      const send = () => {
+        const text = input.value.trim()
+        if (!text) return
+        chat.push({ who: s.profile.name, text, me: true })
+        input.value = ''
+        render('chat')
+        setTimeout(() => {
+          if (!document.querySelector('.online-modal')) return
+          const friend = friends[Math.floor(Math.random() * Math.max(1, friends.length))]
+          chat.push({ who: friend?.name || 'DresseurAlpha', text: replies[Math.floor(Math.random() * replies.length)] })
+          render('chat')
+        }, 650)
+      }
+      wrap.querySelector('#chat-send')?.addEventListener('click', send)
+      input?.addEventListener('keydown', ev => { if (ev.key === 'Enter') { ev.preventDefault(); send() } })
+      const log = wrap.querySelector('.chat-log')
+      if (log) log.scrollTop = log.scrollHeight
+      input?.focus()
+    }
+
+    if (active === 'trade') {
+      wrap.querySelectorAll('[data-trade-mon]').forEach(el => el.addEventListener('click', () => { tradeMon = el.dataset.tradeMon; render('trade') }))
+      wrap.querySelectorAll('[data-trade-friend]').forEach(el => el.addEventListener('click', () => { tradeFriend = el.dataset.tradeFriend; render('trade') }))
+      wrap.querySelector('#trade-go')?.addEventListener('click', async () => {
+        const mon = s.team.find(m => m.uid === tradeMon)
+        const friend = friends.find(f => f.id === tradeFriend)
+        if (!mon || !friend || s.team.length < 2) return
+        const choice = await Dialog.show({
+          speaker: friend.name, color: friend.color || '#f0c96b',
+          text: `Tu me proposes ${displaySpecies(mon).name} (Nv. ${mon.level}) ? En échange, je te confie un Pokémon de niveau équivalent. D’accord ?`,
+          choices: [{ label: 'Oui, échanger', value: 'yes', sub: 'Échange alpha simulé' }, { label: 'Non, annuler', value: 'no' }]
+        })
+        if (choice !== 'yes') return
+        const newId = tradePool[Math.floor(Math.random() * tradePool.length)]
+        const idx = s.team.findIndex(m => m.uid === mon.uid)
+        const replacement = createMonster(newId, mon.level)
+        s.team[idx] = replacement
+        s.seen[newId] = true
+        s.caught[newId] = true
+        tradeMon = replacement.uid
+        persist()
+        toast(`Échange réussi : ${displaySpecies(replacement).name} rejoint ton équipe !`, '🔄')
+        render('trade')
+      })
+    }
   }
+
   openModal({
-    title: 'Poke Online MMO', icon: '🌐', wide: true, className: 'online-modal',
+    title: 'Poke Online MMO · alpha 1.0', icon: '🌐', wide: true, className: 'online-modal',
     content: '', onMount: () => render()
   })
 }
@@ -816,10 +964,11 @@ export function showHelp() {
       <div class="help-grid">
         <div class="help-card"><h4>Se déplacer</h4><p>Flèches / ZQSD / WASD, ou le pavé tactile. Sur mobile, utilise le joystick.</p></div>
         <div class="help-card"><h4>Interagir</h4><p>E / Espace / bouton A. Parle aux PNJ, entre dans les bâtiments et examine les autels.</p></div>
-        <div class="help-card"><h4>Menus</h4><p>M : carte du monde · C : carte de dresseur · A : amis · O : online · B : sac · Échap : menu.</p></div>
+        <div class="help-card"><h4>Menus</h4><p>M : carte · C : dresseur · F : amis · O : online · K : Pokédex · B : sac · Échap : menu.</p></div>
         <div class="help-card"><h4>Combat</h4><p>Choisis une capacité. Les types comptent : regarde les couleurs. Change de Pokémon ou utilise un objet si ça tourne mal.</p></div>
-        <div class="help-card"><h4>Herbes hautes</h4><p>Marche dans les zones d’herbes pour rencontrer des Pokémon sauvages. Les Sable Balls servent à les capturer.</p></div>
-        <div class="help-card"><h4>Progression</h4><p>8 villages, 8 arènes. Au 4e badge : Bracelet Templier, Méga-Templion, et le Sanctuaire des Vents. Les îles s’ouvrent après les 8 badges.</p></div>
+        <div class="help-card"><h4>Herbes hautes</h4><p>Marche dans les herbes pour rencontrer des Pokémon sauvages des 9 générations. Les Sable Balls servent à les capturer.</p></div>
+        <div class="help-card"><h4>Progression</h4><p>8 villages, 8 arènes. Dès 1 badge : Poke Online alpha 1.0. Au 4e badge : Bracelet Templier, Méga-Templion et Sanctuaire des Vents. Les îles s’ouvrent après les 8 badges.</p></div>
+        <div class="help-card"><h4>Tutoriel</h4><p>Le tutoriel guidé suit tes premières actions. Tu peux le passer avec ✕ ou le relancer depuis le menu (Tutoriel).</p></div>
       </div>
       <div class="help-tip"><strong>Astuce du Professeur Sable :</strong> à Oubar, Blue et Red t’entraînent sans limite. Un bon dresseur sait quand il faut retourner s’entraîner.</div>`
   })

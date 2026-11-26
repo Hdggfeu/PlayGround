@@ -86,7 +86,11 @@
         <div class="title-actions">
           <button id="btn-new" class="btn gold big">⚜ Nouvelle partie</button>
           <button id="btn-continue" class="btn big" disabled>Continuer</button>
-          <button id="btn-online-title" class="btn ghost">🌐 Poke Online MMO <span class="maint-pill">maintenance</span></button>
+          <button id="btn-online-title" class="btn ghost">🌐 Poke Online MMO <span class="alpha-pill">alpha 1.0</span></button>
+        </div>
+        <div class="title-news" id="title-news">
+          <span class="tn-badge">NOUVELLE MAJ</span>
+          <span>Tutoriel guidé · Pokémon sauvages 1G → 9G · Online Alpha 1.0 dès 1 badge</span>
         </div>
         <div class="title-save" id="title-save">Aucune sauvegarde détectée</div>
       </div>
@@ -107,6 +111,14 @@
             <span class="eyebrow" id="intro-eyebrow">Le monde de Templier</span>
             <span class="intro-step" id="intro-step">01</span>
           </div>
+          <button class="intro-update" id="intro-update" type="button" aria-label="Voir la mise à jour horaire">
+            <span class="iu-icon" id="iu-icon">⟳</span>
+            <span class="iu-main">
+              <span class="iu-label" id="iu-label">Mise à jour horaire</span>
+              <strong id="iu-title">Chargement…</strong>
+            </span>
+            <span class="iu-timer" id="iu-timer">--:--</span>
+          </button>
           <div class="intro-speaker">
             <span class="speaker-dot"></span>
             <strong id="intro-speaker">Professeur Sable</strong>
@@ -135,6 +147,7 @@
         <div class="hud-right">
           <button class="hud-btn" data-menu="map" title="Carte du monde (M)"><span>🗺</span><small>Carte</small></button>
           <button class="hud-btn" data-menu="card" title="Carte de dresseur (C)"><span>🎴</span><small>Dresseur</small></button>
+          <button class="hud-btn" data-menu="dex" title="Pokédex 9G (K)"><span>📘</span><small>Pokédex</small></button>
           <button class="hud-btn" data-menu="friends" title="Amis (F)"><span>🤝</span><small>Amis</small></button>
           <button class="hud-btn" data-menu="online" title="Poke Online MMO (O)"><span>🌐</span><small>Online</small></button>
           <button class="hud-btn" data-menu="bag" title="Sac (B)"><span>🎒</span><small>Sac</small></button>
@@ -142,6 +155,22 @@
           <button class="hud-btn" data-menu="pause" title="Menu (Échap)"><span>☰</span><small>Menu</small></button>
         </div>
       </header>
+      <div id="tutorial-card" class="tutorial-card hidden" aria-live="polite">
+        <div class="tut-head">
+          <span class="tut-icon" id="tut-icon">👣</span>
+          <div class="tut-title-wrap">
+            <span class="tut-eyebrow" id="tut-eyebrow">Tutoriel · 1/8</span>
+            <strong id="tut-title">Marcher dans le désert</strong>
+          </div>
+          <button class="tut-close" id="tut-skip" aria-label="Passer le tutoriel">✕</button>
+        </div>
+        <p id="tut-text">Utilise les flèches, ZQSD/WASD ou le joystick tactile pour explorer Sablonville.</p>
+        <div class="tut-foot">
+          <div class="tut-dots" id="tut-dots"></div>
+          <span class="tut-key" id="tut-key">Flèches</span>
+          <button class="tut-next" id="tut-next">C’est fait ✓</button>
+        </div>
+      </div>
       <div id="world-wrap">
         <canvas id="world"></canvas>
         <div id="location-banner" class="location-banner"></div>

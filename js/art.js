@@ -839,7 +839,7 @@ export function professorSVG() {
     <!-- hands + hourglass -->
     <path d="M118 430c-14 10-20 26-14 40 8 2 18-2 24-12z" fill="#d99a66" stroke="#b87a4a" stroke-width="2"/>
     <path d="M302 430c14 10 20 26 14 40-8 2-18-2-24-12z" fill="#d99a66" stroke="#b87a4a" stroke-width="2"/>
-    <g transform="translate(210 464)">
+    <g transform="translate(210 440)">
       <rect x="-22" y="-30" width="44" height="8" rx="4" fill="#8a5b2e"/>
       <rect x="-22" y="22" width="44" height="8" rx="4" fill="#8a5b2e"/>
       <path d="M-16-22h32l-14 24 14 24h-32l14-24z" fill="#dff6ff" opacity=".75" stroke="#8a5b2e" stroke-width="2"/>

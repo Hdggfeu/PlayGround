@@ -278,7 +278,124 @@ export const SPECIES = {
     desc: 'Le serpent du ciel. Il dort au-dessus des nuages et juge les serments des hommes.',
     art: { kind: 'legend', body: '#3fae6a', belly: '#d8f5c4', accent: '#14522e', eye: '#ffe066', ears: 'fins', tail: 'serpent', horn: 'crest', wings: 'serpent', aura: '#6ee7b7' },
     learnset: [[1, 'draco_meteore'], [1, 'aeropique'], [1, 'tonnerre'], [1, 'seisme'], [40, 'danse_lames']]
+  },
+
+  // -------------------------------------------------------------------------
+  // Visiteurs des 9 générations — ils apparaissent dans les herbes de Templier.
+  // Chaque visiteur a son propre sprite procédural et sa génération d’origine.
+  // -------------------------------------------------------------------------
+  sablosaure: {
+    id: 'sablosaure', name: 'Sablosaure', gen: 1, region: 'Kanto', types: ['Plante'], catchRate: 180, xpYield: 64,
+    base: { hp: 50, atk: 52, def: 58, spa: 58, spd: 52, spe: 42 },
+    desc: 'Un visiteur venu de la 1G. Sa graine luit comme une oasis au lever du jour.',
+    art: { kind: 'plant', body: '#7ac96a', belly: '#d9f2a8', accent: '#2f6b32', eye: '#21351a', ears: 'leaf', tail: 'leaf', horn: 'sprout' },
+    learnset: [[1, 'charge'], [1, 'fouet_liane'], [7, 'vampigraine'], [14, 'voeu'], [20, 'tempete_verte'], [28, 'psyko']]
+  },
+  flamouille: {
+    id: 'flamouille', name: 'Flamouille', gen: 2, region: 'Johto', types: ['Feu'], catchRate: 170, xpYield: 66,
+    base: { hp: 46, atk: 54, def: 44, spa: 62, spd: 48, spe: 66 },
+    desc: 'Un visiteur venu de la 2G. Sa queue dessine des étincelles quand il est content.',
+    art: { kind: 'cat', body: '#f2a65a', belly: '#ffe0b2', accent: '#a33b1e', eye: '#3d1f12', ears: 'pointed', tail: 'flame', horn: 'none', stripes: true },
+    learnset: [[1, 'griffe'], [1, 'flammeche'], [9, 'rugissement'], [15, 'crocs_feu'], [22, 'lance_flammes']]
+  },
+  ondulys: {
+    id: 'ondulys', name: 'Ondulys', gen: 3, region: 'Hoenn', types: ['Eau'], catchRate: 170, xpYield: 66,
+    base: { hp: 52, atk: 48, def: 50, spa: 64, spd: 56, spe: 60 },
+    desc: 'Un visiteur venu de la 3G. Il surfe sur les mirages des lagunes.',
+    art: { kind: 'fish', body: '#3da9d6', belly: '#d6f4ff', accent: '#1d5c9e', eye: '#0b2239', ears: 'fins', tail: 'fin', horn: 'crest', fins: true },
+    learnset: [[1, 'bulles'], [1, 'pistolet_o'], [9, 'vive_attaque'], [16, 'hydrocanon'], [24, 'atterrissage']]
+  },
+  sylvurne: {
+    id: 'sylvurne', name: 'Sylvurne', gen: 4, region: 'Sinnoh', types: ['Plante', 'Vol'], catchRate: 150, xpYield: 78,
+    base: { hp: 54, atk: 50, def: 54, spa: 68, spd: 62, spe: 70 },
+    desc: 'Un visiteur venu de la 4G. Il niche dans les arbres qui poussent sur les dunes.',
+    art: { kind: 'bird', body: '#7fae6a', belly: '#e6f7b8', accent: '#3f6b3a', eye: '#21351a', ears: 'leaf', tail: 'leaf', horn: 'sprout', wings: 'small' },
+    learnset: [[1, 'tornade'], [1, 'fouet_liane'], [10, 'voeu'], [18, 'aeropique'], [26, 'tempete_verte']]
+  },
+  zéblitz: {
+    id: 'zéblitz', name: 'Zéblitz', gen: 5, region: 'Unys', types: ['Électrik'], catchRate: 150, xpYield: 80,
+    base: { hp: 58, atk: 70, def: 52, spa: 62, spd: 52, spe: 92 },
+    desc: 'Un visiteur venu de la 5G. Ses rayures crépitent avant l’orage.',
+    art: { kind: 'beast', body: '#f2c53d', belly: '#fff3b0', accent: '#2b2118', eye: '#2b2118', ears: 'pointed', tail: 'bolt', horn: 'none', stripes: true },
+    learnset: [[1, 'etincelle'], [1, 'vive_attaque'], [10, 'cage_eclair'], [18, 'tonnerre'], [26, 'aeropique']]
+  },
+  nymphéa: {
+    id: 'nymphéa', name: 'Nymphéa', gen: 6, region: 'Kalos', types: ['Fée'], catchRate: 160, xpYield: 74,
+    base: { hp: 52, atk: 42, def: 50, spa: 72, spd: 68, spe: 64 },
+    desc: 'Un visiteur venu de la 6G. Ses ailes laissent une poussière d’étoiles sur le sable.',
+    art: { kind: 'fairy', body: '#f4a6c8', belly: '#ffe3f0', accent: '#b44d7e', eye: '#4d1f33', ears: 'fairy', tail: 'none', horn: 'star', wings: 'fairy', bloom: true },
+    learnset: [[1, 'eclat_feerique'], [1, 'voeu'], [10, 'tornade'], [18, 'psyko'], [26, 'draco_meteore']]
+  },
+  sélénox: {
+    id: 'sélénox', name: 'Sélénox', gen: 7, region: 'Alola', types: ['Ténèbres', 'Psy'], catchRate: 140, xpYield: 82,
+    base: { hp: 58, atk: 62, def: 54, spa: 76, spd: 64, spe: 70 },
+    desc: 'Un visiteur venu de la 7G. Il chasse les éclats de lune dans les nuits de Templier.',
+    art: { kind: 'bat', body: '#5b4b8a', belly: '#b9a8e8', accent: '#241b45', eye: '#f4d35e', ears: 'bat', tail: 'none', horn: 'horns', wings: 'bat', aura: '#b9a8e8' },
+    learnset: [[1, 'morsure'], [1, 'choc_mental'], [10, 'hypnose'], [18, 'griffe_ombre'], [26, 'psyko']]
+  },
+  givrox: {
+    id: 'givrox', name: 'Givrox', gen: 8, region: 'Galar', types: ['Eau', 'Acier'], catchRate: 130, xpYield: 86,
+    base: { hp: 64, atk: 74, def: 78, spa: 58, spd: 62, spe: 66 },
+    desc: 'Un visiteur venu de la 8G. Son pelage de givre ne fond jamais, même au cœur du désert.',
+    art: { kind: 'beast', body: '#8ecae6', belly: '#e8f7ff', accent: '#3a6a8a', eye: '#1b2b3a', ears: 'pointed', tail: 'tuft', horn: 'none', mane: true, spikes: 2 },
+    learnset: [[1, 'pistolet_o'], [1, 'morsure'], [12, 'queue_fer'], [20, 'hydrocanon'], [28, 'seisme']]
+  },
+  pimentdra: {
+    id: 'pimentdra', name: 'Pimentdra', gen: 9, region: 'Paldea', types: ['Dragon', 'Feu'], catchRate: 120, xpYield: 92,
+    base: { hp: 62, atk: 82, def: 66, spa: 80, spd: 64, spe: 78 },
+    desc: 'Un visiteur venu de la 9G. Son souffle sent le piment grillé et la pierre chaude.',
+    art: { kind: 'dragon', body: '#d94f3d', belly: '#ffd08a', accent: '#5c1a12', eye: '#ffe08a', ears: 'horned', tail: 'flame', horn: 'horns', wings: 'ember', spikes: 3 },
+    learnset: [[1, 'dracosouffle'], [1, 'flammeche'], [12, 'crocs_feu'], [20, 'draco_meteore'], [28, 'lance_flammes']]
   }
+}
+
+export const GENERATIONS = [
+  { gen: 1, label: '1G', region: 'Kanto', color: '#e4572e', species: ['sablosaure'] },
+  { gen: 2, label: '2G', region: 'Johto', color: '#f2c53d', species: ['flamouille'] },
+  { gen: 3, label: '3G', region: 'Hoenn', color: '#3da9d6', species: ['ondulys'] },
+  { gen: 4, label: '4G', region: 'Sinnoh', color: '#7fae6a', species: ['sylvurne'] },
+  { gen: 5, label: '5G', region: 'Unys', color: '#d9a441', species: ['zéblitz'] },
+  { gen: 6, label: '6G', region: 'Kalos', color: '#f4a6c8', species: ['nymphéa'] },
+  { gen: 7, label: '7G', region: 'Alola', color: '#b9a8e8', species: ['sélénox'] },
+  { gen: 8, label: '8G', region: 'Galar', color: '#8ecae6', species: ['givrox'] },
+  { gen: 9, label: '9G', region: 'Paldea', color: '#d94f3d', species: ['pimentdra'] }
+]
+
+export const VISITOR_SPECIES = GENERATIONS.flatMap(g => g.species)
+export const VISITOR_SET = new Set(VISITOR_SPECIES)
+
+export function genLabel(gen) {
+  return gen ? `${gen}G` : 'Templier'
+}
+
+export function speciesGeneration(speciesId) {
+  return SPECIES[speciesId]?.gen || 0
+}
+
+export function currentVisitorGeneration(ts = Date.now()) {
+  return GENERATIONS[Math.floor(ts / 3600000) % GENERATIONS.length]
+}
+
+// Niveau des visiteurs, calé sur l’ordre du village (Sablonville → Île des Épreuves).
+export function visitorLevelRange(loc) {
+  const order = Math.max(0, loc?.order ?? 0)
+  const min = Math.min(50, Math.max(3, 3 + order * 5))
+  return [min, min + 4]
+}
+
+// Table de rencontre complète : espèces locales + visiteurs des 9 générations.
+// La génération à l’honneur change chaque heure, et chaque village a ses favoris.
+export function wildTableFor(loc, ts = Date.now()) {
+  const base = (loc?.wild || []).map(entry => [...entry])
+  if (!base.length) return base
+  const [min, max] = visitorLevelRange(loc)
+  const order = Math.max(0, loc?.order ?? 0)
+  const featured = GENERATIONS[order % GENERATIONS.length]
+  const hourly = currentVisitorGeneration(ts)
+  const daily = GENERATIONS[(Math.floor(ts / 86400000) + order) % GENERATIONS.length]
+  const visitors = [...new Set([featured.species[0], hourly.species[0], daily.species[0]])]
+  for (const id of visitors) base.push([id, min, max])
+  return base
 }
 
 export const STARTERS = [
