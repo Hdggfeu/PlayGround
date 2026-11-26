@@ -1,249 +1,199 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#0d1a16" />
-  <meta name="description" content="Terraverse — a living open-world creature MMORPG. Explore, catch, battle and adventure with trainers around the world." />
-  <title>Terraverse — Open World Creature MMORPG</title>
-  <link rel="stylesheet" href="./styles.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+<meta name="theme-color" content="#0b1020" />
+<meta name="description" content="Pokéverse Online — a fan-made open-world Pokémon MMORPG with every species from every generation." />
+<title>Pokéverse Online — Every Pokémon. One World.</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='28' fill='%23f4c95d'/%3E%3Cpath d='M4 32h56' stroke='%230b1020' stroke-width='6'/%3E%3Ccircle cx='32' cy='32' r='10' fill='%230b1020'/%3E%3Ccircle cx='32' cy='32' r='5' fill='%23f4c95d'/%3E%3C/svg%3E" />
+<link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-  <div id="app">
-    <canvas id="world" aria-label="Terraverse open world"></canvas>
-    <div class="world-vignette"></div>
-    <div class="world-grain"></div>
+<div id="app">
+  <canvas id="world" aria-label="Game world"></canvas>
+  <div id="world-vignette"></div>
 
-    <!-- loading -->
-    <div id="boot" class="boot">
-      <div class="boot-mark">
-        <span class="brand-orb brand-orb--xl"><i></i></span>
-      </div>
-      <div class="boot-title">TERRAVERSE</div>
-      <div class="boot-sub" data-i18n="boot.sub">Waking up the wild...</div>
-      <div class="boot-track"><span id="bootBar"></span></div>
-    </div>
-
-    <!-- top navigation -->
-    <header class="topbar">
-      <div class="brand">
-        <span class="brand-orb"><i></i></span>
-        <div class="brand-copy">
-          <strong>TERRAVERSE</strong>
-          <span data-i18n="brand.tagline">OPEN WORLD MMORPG</span>
+  <!-- ============ TITLE ============ -->
+  <section id="title-screen">
+    <div class="title-sky"></div>
+    <div class="title-sun"></div>
+    <div class="title-clouds"><i></i><i></i><i></i><i></i></div>
+    <div class="title-hills hill-a"></div>
+    <div class="title-hills hill-b"></div>
+    <div class="title-ground"></div>
+    <div class="fireflies" id="fireflies"></div>
+    <div class="title-wrap">
+      <div class="title-badge">FAN-MADE OPEN WORLD · 1025 SPECIES · ALL 9 GENERATIONS</div>
+      <h1 class="logo"><span class="logo-poke">POKÉ</span><span class="logo-verse">VERSE</span></h1>
+      <div class="logo-online">O N L I N E</div>
+      <p class="tagline">Every Pokémon. One world. <em>Join the adventure.</em></p>
+      <div class="title-card">
+        <div class="title-field">
+          <label for="trainer-name">TRAINER NAME</label>
+          <input id="trainer-name" maxlength="14" placeholder="Ash" autocomplete="off" spellcheck="false" />
         </div>
-      </div>
-
-      <div class="mobile-player"><strong id="mobileName">Nova</strong><span id="mobileLv">Lv.14</span></div>
-
-      <div class="zone-pill" id="zonePill">
-        <svg class="ico"><use href="#i-compass"/></svg>
-        <div>
-          <span class="zone-kicker" data-i18n="hud.exploring">YOU ARE EXPLORING</span>
-          <strong id="zoneName">Verdant Hollow</strong>
-        </div>
-        <span class="zone-weather" id="weatherChip">Sunlit · 10:24</span>
-      </div>
-
-      <div class="top-actions">
-        <div class="online-pill"><span class="live-dot"></span><strong id="onlineCount">1,284</strong><span data-i18n="hud.online">online</span></div>
-        <div class="currency" title="Trainer coins" data-i18n-title="hud.coinsTitle">
-          <span class="coin"></span><strong id="coinCount">2,450</strong>
-        </div>
-        <button class="icon-btn" id="btnSocial" title="Trainers nearby (O)" aria-label="Trainers nearby" data-i18n-title="nav.social" data-i18n-aria="nav.social">
-          <svg class="ico"><use href="#i-users"/></svg>
-          <span class="notif-dot"></span>
-        </button>
-        <button class="icon-btn" id="btnMap" title="World map (M)" aria-label="World map" data-i18n-title="nav.map" data-i18n-aria="nav.map">
-          <svg class="ico"><use href="#i-map"/></svg>
-        </button>
-        <button class="icon-btn lang-btn" id="btnLang" title="Change language" aria-label="Change language" data-i18n-title="nav.language" data-i18n-aria="nav.language">EN</button>
-        <button class="icon-btn" id="btnSettings" title="Settings" aria-label="Settings" data-i18n-title="nav.settings" data-i18n-aria="nav.settings">
-          <svg class="ico"><use href="#i-settings"/></svg>
-        </button>
-        <button class="icon-btn" id="btnSound" title="Toggle sound" aria-label="Toggle sound" data-i18n-title="nav.sound" data-i18n-aria="nav.sound">
-          <svg class="ico"><use href="#i-sound"/></svg>
-        </button>
-      </div>
-    </header>
-
-    <!-- left rail -->
-    <aside class="left-rail">
-      <section class="profile-card glass">
-        <div class="profile-avatar">
-          <canvas id="avatarCanvas" width="96" height="96"></canvas>
-          <span class="profile-lv" id="profileLv">12</span>
-        </div>
-        <div class="profile-main">
-          <div class="profile-row">
-            <strong id="playerName">Nova</strong>
-            <span class="rank-tag" data-i18n="rank.ranger">RANGER</span>
+        <div class="title-field">
+          <label>TRAINER LOOK</label>
+          <div class="swatches" id="title-swatches">
+            <button class="swatch active" data-shirt="#e05a4a" data-hat="#e05a4a" style="--c:#e05a4a"></button>
+            <button class="swatch" data-shirt="#4f8fe8" data-hat="#4f8fe8" style="--c:#4f8fe8"></button>
+            <button class="swatch" data-shirt="#57b94c" data-hat="#57b94c" style="--c:#57b94c"></button>
+            <button class="swatch" data-shirt="#f2c744" data-hat="#f2c744" style="--c:#f2c744"></button>
+            <button class="swatch" data-shirt="#a45bd6" data-hat="#a45bd6" style="--c:#a45bd6"></button>
+            <button class="swatch" data-shirt="#2b2b38" data-hat="#d4af37" style="--c:#2b2b38"></button>
           </div>
-          <div class="xp-line"><span id="xpBar" style="width:42%"></span></div>
-          <div class="profile-sub"><span id="xpText">2,140 / 5,000 XP</span><span class="online-mini" data-i18n="hud.profileOnline">● Online</span></div>
         </div>
-        <button class="profile-more" id="btnProfile" aria-label="Open trainer profile">···</button>
-      </section>
-
-      <section class="quest-card glass" id="questCard">
-        <div class="card-head">
-          <div class="head-title"><span class="quest-glyph">!</span><span data-i18n="quest.main">MAIN QUEST</span></div>
-          <span class="quest-chapter" data-i18n="quest.chapter">CH. 01</span>
+        <div class="title-actions">
+          <button id="btn-new" class="btn btn-primary btn-big">▶ New Journey</button>
+          <button id="btn-continue" class="btn btn-ghost btn-big hidden">Continue</button>
         </div>
-        <h3 id="questTitle" data-i18n="quest.title">A New Journey</h3>
-        <p id="questDesc" data-i18n="quest.desc">Professor Alder is waiting by the lab. Something is stirring in the Verdant Wilds.</p>
-        <div class="quest-progress">
-          <div class="q-row" id="questObj1"><span class="q-check"></span><span data-i18n="quest.objTalk">Speak with Professor Alder</span><b>0/1</b></div>
-          <div class="q-row" id="questObj2"><span class="q-check"></span><span data-i18n="quest.objCatch">Catch 3 wild Pokémon</span><b>0/3</b></div>
-          <div class="q-row" id="questObj3"><span class="q-check"></span><span data-i18n="quest.objLevel">Reach trainer level 15</span><b>12/15</b></div>
-        </div>
-        <div class="quest-reward"><span data-i18n="quest.rewards">REWARDS</span><b><i class="coin mini"></i> 800</b><b><i class="ball mini"></i> 10</b></div>
-      </section>
-
-      <section class="event-card glass">
-        <div class="event-art">
-          <span class="event-ring"></span>
-          <span class="event-spark s1"></span><span class="event-spark s2"></span><span class="event-spark s3"></span>
-          <img id="eventSprite" src="./assets/pokemon/384.png" alt="" />
-        </div>
-        <div class="event-copy">
-          <span class="event-kicker"><i class="live-dot"></i> <span data-i18n="event.kicker">WORLD EVENT</span></span>
-          <strong id="eventTitle" data-i18n="event.title">Sky Serpent Sighting</strong>
-          <p id="eventDesc" data-i18n="event.desc">Rayquaza circles Victory Peak. Join 47 trainers at the summit.</p>
-          <div class="event-meta"><span id="eventTimer">14:32</span><span data-i18n="event.trainers" data-i18n-args='{"n":47}'>47 trainers</span></div>
-        </div>
-        <button class="event-join" id="btnRaid" data-i18n="event.join">Join raid</button>
-      </section>
-    </aside>
-
-    <!-- right rail -->
-    <aside class="right-rail">
-      <section class="minimap-card glass">
-        <div class="minimap-head">
-          <div><span class="mm-kicker" data-i18n="mm.local">LOCAL MAP</span><strong id="mmZone">Verdant Hollow</strong></div>
-          <button class="mm-expand" id="btnMap2" aria-label="Open world map"><svg class="ico"><use href="#i-expand"/></svg></button>
-        </div>
-        <div class="minimap-wrap">
-          <canvas id="minimap" width="480" height="300"></canvas>
-          <div class="mm-compass">N</div>
-          <div class="mm-scan"></div>
-        </div>
-        <div class="mm-footer"><span><i class="mm-dot mm-you"></i><span data-i18n="hud.you">You</span></span><span><i class="mm-dot mm-player"></i><span data-i18n="hud.trainers">Trainers</span></span><span><i class="mm-dot mm-wild"></i><span data-i18n="hud.wild">Wild</span></span></div>
-      </section>
-
-      <section class="party-card glass">
-        <div class="card-head party-head">
-          <div class="head-title"><svg class="ico small"><use href="#i-paw"/></svg><span data-i18n="party.title">YOUR PARTY</span></div>
-          <button class="link-btn" id="btnParty" data-i18n="party.manage">Manage</button>
-        </div>
-        <div id="partyRail" class="party-rail"></div>
-        <div class="party-foot"><span id="partyCount">3 / 6</span><span class="key-hint"><kbd>P</kbd> <span data-i18n="party.key">party</span></span></div>
-      </section>
-    </aside>
-
-    <!-- chat -->
-    <section class="chat-dock glass" id="chatDock">
-      <div class="chat-head">
-        <div class="chat-tabs">
-          <button class="chat-tab active" data-chat="global" data-i18n="chat.global">GLOBAL</button>
-          <button class="chat-tab" data-chat="local" data-i18n="chat.local">LOCAL</button>
-          <button class="chat-tab" data-chat="party" data-i18n="chat.party">PARTY</button>
-        </div>
-        <span class="chat-live"><i class="live-dot"></i> <span data-i18n="chat.shard">SHARD 07</span></span>
-        <button class="chat-min" id="chatMin" aria-label="Minimize chat">−</button>
+        <div class="server-status"><span class="live-dot"></span><b id="online-count">12,847</b> trainers online · <span id="title-seed-label">World seed ready</span></div>
       </div>
-      <div class="chat-body" id="chatBody"></div>
-      <form class="chat-input" id="chatForm">
-        <span class="chat-chevron">›</span>
-        <input id="chatInput" maxlength="90" placeholder="Say something to the world..." autocomplete="off" data-i18n-placeholder="chat.placeholder" />
-        <button type="submit" class="chat-send" data-i18n="chat.send">SEND</button>
-      </form>
-    </section>
-
-    <!-- hotbar -->
-    <div class="hotbar-wrap">
-      <div class="interact-prompt" id="interactPrompt">
-        <span class="keycap">E</span><span id="interactText">Talk to Professor Alder</span>
+      <div class="starter-showcase" aria-hidden="true">
+        <img src="assets/sprites/1.png" alt="" class="starter-float s1" />
+        <img src="assets/sprites/4.png" alt="" class="starter-float s2" />
+        <img src="assets/sprites/7.png" alt="" class="starter-float s3" />
+        <img src="assets/sprites/25.png" alt="" class="starter-float s4" />
       </div>
-      <div class="hotbar glass">
-        <button class="slot active" data-slot="ball" title="Poké Ball" data-i18n-title="hotbar.ball">
-          <span class="item-ball"></span><span class="slot-count" id="ballCount">12</span><kbd>1</kbd>
-        </button>
-        <button class="slot" data-slot="great" title="Great Ball" data-i18n-title="hotbar.great">
-          <span class="item-ball great"></span><span class="slot-count" id="greatCount">4</span><kbd>2</kbd>
-        </button>
-        <button class="slot" data-slot="potion" title="Potion" data-i18n-title="hotbar.potion">
-          <span class="item-potion"></span><span class="slot-count" id="potionCount">5</span><kbd>3</kbd>
-        </button>
-        <div class="hotbar-sep"></div>
-        <button class="slot" data-slot="bag" title="Bag (B)" data-i18n-title="hotbar.bag">
-          <svg class="ico"><use href="#i-bag"/></svg><kbd>B</kbd>
-        </button>
-        <button class="slot" data-slot="party" title="Party (P)" data-i18n-title="hotbar.party">
-          <svg class="ico"><use href="#i-paw"/></svg><kbd>P</kbd>
-        </button>
-        <button class="slot" data-slot="dex" title="Pokédex (D)" data-i18n-title="hotbar.dex">
-          <svg class="ico"><use href="#i-dex"/></svg><kbd>D</kbd>
-        </button>
-        <button class="slot" data-slot="map" title="World map (M)" data-i18n-title="hotbar.map">
-          <svg class="ico"><use href="#i-map"/></svg><kbd>M</kbd>
-        </button>
-        <div class="hotbar-sep"></div>
-        <button class="slot slot-wide" data-slot="emote" title="Emote wheel" data-i18n-title="hotbar.emote">
-          <span class="emote-face">☺</span><span class="emote-label" data-i18n="hotbar.emoteLabel">Emote</span><kbd>X</kbd>
-        </button>
-      </div>
-      <div class="control-hint"><kbd>WASD</kbd> <span data-i18n="hint.move">move</span> <span>·</span> <kbd>Shift</kbd> <span data-i18n="hint.sprint">sprint</span> <span>·</span> <kbd>E</kbd> <span data-i18n="hint.interact">interact</span></div>
+      <div class="title-foot">Unofficial fan project · Pokémon © Nintendo / Creatures / GAME FREAK · Built with love</div>
     </div>
+  </section>
+
+  <!-- ============ LOADING ============ -->
+  <div id="loading" class="hidden">
+    <div class="loading-inner">
+      <div class="pokeball-spinner"><i></i></div>
+      <div class="loading-title">Entering the Pokéverse</div>
+      <div class="loading-bar"><span id="loading-fill"></span></div>
+      <div class="loading-tip" id="loading-tip">Generating 192 × 192 tiles of wilderness…</div>
+    </div>
+  </div>
+
+  <!-- ============ HUD ============ -->
+  <div id="hud" class="hidden">
+    <div class="hud-top">
+      <div class="player-card glass">
+        <div class="avatar-frame"><canvas id="hud-avatar" width="64" height="72"></canvas><span class="lvl-badge" id="hud-level">Lv 5</span></div>
+        <div class="pc-info">
+          <div class="pc-row"><span class="pc-name" id="hud-name">Trainer</span><span class="pc-online">●</span></div>
+          <div class="pc-sub"><span id="hud-zone">Willowbrook Town</span></div>
+          <div class="pc-money"><span class="coin">₽</span> <b id="hud-money">3,000</b><span class="badge-row" id="hud-badges"></span></div>
+          <div class="xp-bar"><span id="hud-xp"></span></div>
+        </div>
+      </div>
+
+      <div class="quest-card glass" id="quest-card">
+        <div class="qc-head"><span class="qc-label">◆ MAIN QUEST</span><button class="mini-btn" id="quest-toggle">–</button></div>
+        <div class="qc-title" id="quest-title">A New Beginning</div>
+        <div class="qc-desc" id="quest-desc">Choose your first partner.</div>
+        <div class="qc-progress"><span id="quest-progress"></span></div>
+        <div class="qc-hint" id="quest-hint"></div>
+      </div>
+
+      <div class="map-card glass">
+        <div class="mc-head"><span id="hud-time">8:20 AM</span><span class="weather-chip" id="hud-weather">☀ Clear</span></div>
+        <canvas id="minimap" width="320" height="320"></canvas>
+        <div class="mc-zone" id="hud-region">Verdant Meadows</div>
+        <button class="mini-btn map-open" id="btn-map-quick">Open Map (M)</button>
+      </div>
+    </div>
+
+    <div class="chat-panel glass" id="chat-panel">
+      <div class="chat-head"><span><span class="live-dot"></span> GLOBAL CHAT</span><span class="chat-online" id="chat-online">12,847 online</span><button class="mini-btn" id="chat-collapse">▾</button></div>
+      <div class="chat-feed" id="chat-feed"></div>
+      <form class="chat-input" id="chat-form"><input id="chat-text" maxlength="120" placeholder="Say something to the world…" autocomplete="off" /><button class="mini-send" type="submit">↵</button></form>
+    </div>
+
+    <div class="interact-prompt hidden" id="interact-prompt"><span class="key">E</span><span id="interact-text">Talk</span></div>
+
+    <div class="hotbar" id="hotbar">
+      <button class="hot-btn" data-ui="party"><span class="hb-icon">◉</span><span>Party</span><kbd>1</kbd></button>
+      <button class="hot-btn" data-ui="bag"><span class="hb-icon">🎒</span><span>Bag</span><kbd>2</kbd></button>
+      <button class="hot-btn" data-ui="dex"><span class="hb-icon">▤</span><span>Dex</span><kbd>3</kbd></button>
+      <button class="hot-btn" data-ui="map"><span class="hb-icon">⌖</span><span>Map</span><kbd>M</kbd></button>
+      <button class="hot-btn" data-ui="quests"><span class="hb-icon">◆</span><span>Quests</span><kbd>Q</kbd></button>
+      <button class="hot-btn" data-ui="settings"><span class="hb-icon">⚙</span><span>Menu</span><kbd>Esc</kbd></button>
+    </div>
+
+    <div class="toast-stack" id="toast-stack"></div>
+    <div class="pop-layer" id="pop-layer"></div>
 
     <!-- touch controls -->
-    <div class="touch-controls" id="touchControls">
-      <div class="joystick" id="joystick"><div class="joy-base"><span id="joyKnob"></span></div></div>
+    <div id="touch-ui" class="hidden">
+      <div class="joystick" id="joystick"><div class="stick" id="stick"></div></div>
       <div class="touch-actions">
-        <button id="touchInteract" class="touch-btn touch-a">A<small data-i18n="touch.interact">Interact</small></button>
-        <button id="touchBall" class="touch-btn touch-b"><span class="item-ball mini-ball"></span><small data-i18n="touch.catch">Catch</small></button>
-      </div>
-      <div class="touch-menu">
-        <button data-touch="bag" data-i18n="touch.bag">Bag</button>
-        <button data-touch="party" data-i18n="touch.party">Party</button>
-        <button data-touch="dex" data-i18n="touch.dex">Dex</button>
-        <button data-touch="map" data-i18n="touch.map">Map</button>
-        <button data-touch="quests" data-i18n="touch.quests">Quests</button>
-        <button data-touch="chat" data-i18n="touch.chat">Chat</button>
+        <button class="touch-btn small" id="touch-menu">☰</button>
+        <button class="touch-btn" id="touch-a">A</button>
+        <button class="touch-btn small" id="touch-run">➤</button>
       </div>
     </div>
-
-    <div class="toast-stack" id="toasts"></div>
-    <div class="zone-banner" id="zoneBanner">
-      <span class="zb-kicker" data-i18n="zone.entering">ENTERING</span>
-      <strong id="zbName">Verdant Hollow</strong>
-      <span id="zbSub">Where every journey begins</span>
-    </div>
-    <div class="damage-layer" id="damageLayer"></div>
-
-    <div id="modalRoot" class="modal-root" aria-live="polite"></div>
-    <div id="battleRoot" class="battle-root" aria-live="polite"></div>
-
-    <svg class="svg-defs" aria-hidden="true">
-      <symbol id="i-compass" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm3.6 6.4-2 5.2-5.2 2 2-5.2 5.2-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
-      <symbol id="i-users" viewBox="0 0 24 24"><path d="M16 20v-1.5a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4V20M9 10.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7ZM17 3.6a3.5 3.5 0 0 1 0 6.8M22 20v-1.5a4 4 0 0 0-3-3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-      <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3V6Zm6-3v15m6-12v15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></symbol>
-      <symbol id="i-sound" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5Zm4.5 4.5a4 4 0 0 1 0 5M18.5 6.5a8 8 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-      <symbol id="i-expand" viewBox="0 0 24 24"><path d="M8 3H3v5m13-5h5v5M8 21H3v-5m13 5h5v-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-      <symbol id="i-paw" viewBox="0 0 24 24"><path d="M12 13c3.5 0 6 2 6 4.4 0 1.8-1.3 2.6-3 2.6-1.2 0-2-.6-3-.6s-1.8.6-3 .6c-1.7 0-3-.8-3-2.6C6 15 8.5 13 12 13Zm-6.4-1.6c1.2.6 1.7 2.3 1.1 3.7-.6 1.4-2.2 2-3.4 1.4-1.2-.6-1.7-2.3-1.1-3.7.6-1.4 2.2-2 3.4-1.4Zm12.8 0c1.2-.6 2.8 0 3.4 1.4.6 1.4.1 3.1-1.1 3.7-1.2.6-2.8 0-3.4-1.4-.6-1.4-.1-3.1 1.1-3.7ZM8.7 3.8c1.4.2 2.3 1.8 2 3.5-.3 1.7-1.7 2.9-3.1 2.7-1.4-.2-2.3-1.8-2-3.5.3-1.7 1.7-2.9 3.1-2.7Zm6.6 0c1.4-.2 2.8 1 3.1 2.7.3 1.7-.6 3.3-2 3.5-1.4.2-2.8-1-3.1-2.7-.3-1.7.6-3.3 2-3.5Z" fill="currentColor"/></symbol>
-      <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 13H6L5 8Zm3 0V6a4 4 0 0 1 8 0v2m-6 5h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-dex" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3V4Zm0 13a3 3 0 0 1 3-3h11M9 8h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
-      <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-      <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m16.5 16.5 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
-      <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1-5.4-2.9-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3Z" fill="currentColor"/></symbol>
-      <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.2 2.9 7.5 7 9 4.1-1.5 7-4.8 7-9V6l-7-3Z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z" fill="currentColor"/></symbol>
-      <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s7-5.2 7-11a7 7 0 1 0-14 0c0 5.8 7 11 7 11Z" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.5" fill="currentColor"/></symbol>
-      <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h14m-4-4 4 4-4 4M20 16H6m4 4-4-4 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-      <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4v-.2a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.6-1H3v-4h.2a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6V3h4v.2a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
-    </svg>
   </div>
-  <script type="module" src="./src/main.js"></script>
+
+  <!-- ============ BATTLE ============ -->
+  <section id="battle" class="hidden">
+    <div class="battle-bg" id="battle-bg"></div>
+    <div class="battle-particles" id="battle-particles"></div>
+    <div class="battle-topbar">
+      <span class="battle-mode" id="battle-mode">WILD BATTLE</span>
+      <button class="mini-btn" id="battle-help">?</button>
+    </div>
+    <div class="enemy-panel" id="enemy-panel">
+      <div class="bp-name"><span id="enemy-name">Wild Pokémon</span><span class="bp-gender" id="enemy-gender"></span></div>
+      <div class="bp-level" id="enemy-level">Lv 5</div>
+      <div class="bp-types" id="enemy-types"></div>
+      <div class="hp-wrap"><div class="hp-label">HP</div><div class="hp-bar"><span id="enemy-hp"></span></div></div>
+      <div class="bp-status" id="enemy-status"></div>
+    </div>
+    <div class="ally-panel" id="ally-panel">
+      <div class="bp-name"><span id="ally-name">Partner</span><span class="bp-gender" id="ally-gender"></span></div>
+      <div class="bp-level" id="ally-level">Lv 5</div>
+      <div class="bp-types" id="ally-types"></div>
+      <div class="hp-wrap"><div class="hp-label">HP</div><div class="hp-bar"><span id="ally-hp"></span></div></div>
+      <div class="bp-hpnum" id="ally-hpnum">20/20</div>
+      <div class="bp-status" id="ally-status"></div>
+      <div class="xp-mini"><span id="ally-xp"></span></div>
+    </div>
+    <div class="battle-field">
+      <div class="platform enemy-platform"></div>
+      <div class="platform ally-platform"></div>
+      <img id="enemy-sprite" class="battle-sprite enemy-sprite" alt="" />
+      <img id="ally-sprite" class="battle-sprite ally-sprite" alt="" />
+      <div class="fx-layer" id="fx-layer"></div>
+      <div class="catch-anim hidden" id="catch-anim"><div class="ball">◓</div><div class="catch-stars">✦ ✦ ✦</div></div>
+    </div>
+    <div class="battle-console">
+      <div class="battle-log" id="battle-log">
+        <div class="log-text" id="battle-text">What will you do?</div>
+        <div class="battle-message-history" id="battle-history"></div>
+      </div>
+      <div class="battle-commands" id="battle-commands">
+        <div class="move-grid" id="move-grid"></div>
+        <div class="battle-side">
+          <button class="battle-btn" id="btn-bag">Bag <kbd>B</kbd></button>
+          <button class="battle-btn" id="btn-switch">Party <kbd>P</kbd></button>
+          <button class="battle-btn danger" id="btn-run">Run <kbd>R</kbd></button>
+        </div>
+      </div>
+      <div class="battle-submenu hidden" id="battle-submenu"></div>
+    </div>
+    <div class="battle-flash" id="battle-flash"></div>
+  </section>
+
+  <!-- ============ OVERLAYS ============ -->
+  <div id="modal-layer" class="hidden"></div>
+  <div id="dialogue" class="hidden">
+    <div class="dlg-box glass">
+      <div class="dlg-portrait" id="dlg-portrait"></div>
+      <div class="dlg-main">
+        <div class="dlg-name" id="dlg-name">Professor Willow</div>
+        <div class="dlg-text" id="dlg-text"></div>
+        <div class="dlg-choices" id="dlg-choices"></div>
+      </div>
+    </div>
+  </div>
+  <div id="fade" class="hidden"></div>
+</div>
+<script type="module" src="js/main.js"></script>
 </body>
 </html>
