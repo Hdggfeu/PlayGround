@@ -70,6 +70,7 @@ export function createState(name) {
     awards: 0,
     gameOver: false,
     negativeWeeks: 0,
+    lastEvent: null,
     trend: rollTrend(),
     trendWeek: 1,
     achievements: [],
@@ -373,6 +374,9 @@ export function shipGame() {
   S.rep = clamp(S.rep + (score - 5.5) * 1.35, 0, 100);
   S.totals.copies += copies;
   S.totals.revenue += cut;
+  if (S.history.length) {
+    Object.assign(S.history[S.history.length - 1], { cash: Math.round(S.cash), fans: Math.round(S.fans), rep: Math.round(S.rep) });
+  }
   S.project = null;
   addNews(score >= 8 ? 'good' : score >= 6 ? 'info' : 'bad',
     `${release.title} shipped to ${score.toFixed(1)}/10 reviews and ${copies.toLocaleString()} sales.`);
@@ -578,7 +582,9 @@ export function advanceWeek() {
 
   // random event
   if (Math.random() < 0.22) {
-    const ev = pick(EVENT_POOL);
+    let ev = pick(EVENT_POOL);
+    if (ev.id === S.lastEvent) ev = pick(EVENT_POOL);
+    S.lastEvent = ev.id;
     ev.apply(S);
     addNews(ev.kind, ev.text);
     toasts.push({ kind: ev.kind, text: ev.text });

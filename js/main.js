@@ -108,12 +108,14 @@ function continueGame() {
 function toast(text, kind = 'info', iconName) {
   const root = document.getElementById('toast-root');
   if (!root) return;
+  for (const child of [...root.children]) if (child.dataset.text === text) child.remove();
   const el = document.createElement('div');
   const ic = iconName || (kind === 'bad' ? 'bug' : kind === 'good' ? 'check' : kind === 'warn' ? 'zap' : 'spark');
   el.className = `toast ${kind}`;
+  el.dataset.text = text;
   el.innerHTML = `<span class="toast-ic">${icon(ic, 16)}</span><span>${esc(text)}</span>`;
   root.appendChild(el);
-  while (root.children.length > 4) root.firstElementChild.remove();
+  while (root.children.length > 3) root.firstElementChild.remove();
   setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 350); }, 4200);
 }
 

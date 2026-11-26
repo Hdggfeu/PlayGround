@@ -93,7 +93,7 @@ export function officeSVG() {
   const trophies = S.awards;
 
   return `
-  <svg class="office-svg" viewBox="0 0 900 360" role="img" aria-label="The studio office">
+  <svg class="office-svg" viewBox="0 0 900 360" preserveAspectRatio="xMidYMid slice" role="img" aria-label="The studio office">
     <defs>
       <linearGradient id="wall" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="#141d28"/><stop offset="1" stop-color="#0c121a"/>

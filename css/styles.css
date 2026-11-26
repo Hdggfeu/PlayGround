@@ -844,8 +844,8 @@ input[type="range"].marketing { --accent: #fbbf24; background: linear-gradient(9
   .view-head h1 { font-size: 24px; }
   .view-head { margin-bottom: 14px; }
   .panel { padding: 14px; border-radius: 14px; }
-  .office-panel { padding: 0; }
-  .office-svg { min-height: 150px; object-fit: cover; }
+  .office-panel { padding: 0; min-height: 0; }
+  .office-svg { height: 196px; width: 100%; }
   .office-overlay.top { top: 8px; left: 8px; right: 8px; }
   .office-overlay .chip { height: 23px; font-size: 9.5px; }
   .summary-grid, .stat-row { grid-template-columns: repeat(2, 1fr); }
