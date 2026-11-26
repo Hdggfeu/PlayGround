@@ -158,6 +158,27 @@ const INTRO_STEPS = [
   }
 ]
 
+function introHourlyNoteInner() {
+  const { item } = currentHourlyUpdate()
+  return `<span class="ihn-icon">${item.icon}</span>
+    <span class="ihn-main">
+      <strong>${item.code ? 'Code de l’heure' : 'Nouveauté de l’heure'} · ${hourLabel()}</strong>
+      <small>${escapeHTML(item.title)} · ${item.code ? 'annoncé sur notre compte officiel ou sur demande.' : escapeHTML(item.text)}</small>
+    </span>
+    <button class="ihn-btn" id="intro-hourly-ask" type="button">Détails</button>`
+}
+
+function bindIntroHourlyAsk() {
+  $('#intro-hourly-ask')?.addEventListener('click', () => { sfx('open'); showHourlyUpdateModal() })
+}
+
+function refreshIntroHourlyNote() {
+  const el = $('#intro-hourly-note')
+  if (!el) return
+  el.innerHTML = introHourlyNoteInner()
+  bindIntroHourlyAsk()
+}
+
 function renderIntroArt() {
   const art = $('#intro-art')
   if (!art) return
@@ -183,7 +204,8 @@ function renderIntro() {
     $('#intro-eyebrow').textContent = step.eyebrow
     $('#intro-speaker').textContent = step.speaker
     $('#intro-role').textContent = step.role
-    $('#intro-text').innerHTML = step.text
+    $('#intro-text').innerHTML = step.text + `<div class="intro-hourly-note" id="intro-hourly-note">${introHourlyNoteInner()}</div>`
+    bindIntroHourlyAsk()
     actions.innerHTML = `<button class="btn gold" id="intro-next">Écouter la suite ▸</button>`
     $('#intro-next').addEventListener('click', () => { sfx('click'); introStep++; renderIntro() })
     return
@@ -204,8 +226,8 @@ function renderIntro() {
       </div>
       <div class="form-row">
         <label for="intro-age">Âge</label>
-        <input id="intro-age" type="number" min="10" max="99" inputmode="numeric" value="${introProfile.age}" placeholder="14">
-        <small>Entre 10 et 99 ans. Le désert ne juge pas, mais il compte.</small>
+        <input id="intro-age" type="number" min="7" max="99" inputmode="numeric" value="${introProfile.age}" placeholder="14">
+        <small>Accessible dès 7 ans, jusqu’à 99 ans. Le désert ne juge pas, mais il compte.</small>
       </div>
       <div class="form-row">
         <label for="intro-name">Nom d’utilisateur</label>
@@ -226,7 +248,7 @@ function renderIntro() {
     $('#intro-next').addEventListener('click', () => {
       const age = Number($('#intro-age').value)
       const name = $('#intro-name').value.trim()
-      if (!Number.isFinite(age) || age < 10 || age > 99) { toast('Choisis un âge entre 10 et 99 ans.', '⚠️'); $('#intro-age').focus(); return }
+      if (!Number.isFinite(age) || age < 7 || age > 99) { toast('Choisis un âge entre 7 et 99 ans.', '⚠️'); $('#intro-age').focus(); return }
       if (name.length < 2) { toast('Ton nom doit contenir au moins 2 caractères.', '⚠️'); $('#intro-name').focus(); return }
       introProfile.age = Math.floor(age)
       introProfile.name = name
@@ -309,7 +331,7 @@ function skipIntro() {
 
 async function beginAdventure() {
   const name = (introProfile.name || '').trim() || 'Dresseur'
-  const age = Math.min(99, Math.max(10, Number(introProfile.age) || 14))
+  const age = Math.min(99, Math.max(7, Number(introProfile.age) || 14))
   const save = newGame({ name, age, gender: introProfile.gender }, introStarter)
   resetSave()
   G.save = save
@@ -355,6 +377,22 @@ const HOURLY_UPDATES = [
   {
     icon: '✨', tag: 'UPGRADE', title: 'Sanctuaire des Vents',
     text: 'Latias, Latios et Rayquaza brillent davantage sur leurs autels. Le quatrième badge reste la clé qui réveille le sanctuaire.'
+  },
+  {
+    icon: '👣', tag: 'MAJ', title: 'Tutoriel guidé pour bien démarrer',
+    text: 'Un tutoriel simple suit tes premières actions : marcher, interagir, herbes, carte, badge, online et Pokédex. Passe-le avec ✕ ou relance-le depuis le menu.'
+  },
+  {
+    icon: '🐾', tag: 'MAJ', title: 'Visiteurs des 9 générations',
+    text: 'Des Pokémon de Kanto à Paldea apparaissent dans les herbes. Chaque village a ses favoris, et la génération à l’honneur change toutes les heures.'
+  },
+  {
+    icon: '🌐', tag: 'MAJ', title: 'Poke Online alpha 1.0 dès 1 badge',
+    text: 'La Ligue, le chat et les échanges s’ouvrent dès le premier badge. Les adversaires et les réponses sont simulés localement pendant cette alpha.'
+  },
+  {
+    icon: '🧒', tag: 'UPGRADE', title: 'Accessible dès 7 ans',
+    text: 'L’âge minimum passe à 7 ans. Le tutoriel est simple, l’introduction peut être passée, et l’option « Texte plus grand » rend les dialogues plus lisibles.'
   }
 ]
 
@@ -401,6 +439,7 @@ function renderHourlyUpdate(flash = false) {
     root.classList.remove('flash')
     void root.offsetWidth
     root.classList.add('flash')
+    refreshIntroHourlyNote()
   }
   lastHourlyIndex = index
 }
@@ -472,6 +511,7 @@ async function startGame({ firstTime = false } = {}) {
   setSoundEnabled(G.save.settings.sound)
   updateSoundButton(G.save.settings.sound)
   document.body.classList.toggle('reduced-motion', !!G.save.settings.reducedMotion)
+  document.body.classList.toggle('large-text', !!G.save.settings.largeText)
 
   const canvas = $('#world')
   if (!world) {
@@ -738,6 +778,7 @@ async function resetGame() {
   closeModal()
   Dialog.close()
   setGamePaused(true)
+  document.body.classList.remove('large-text', 'reduced-motion')
   $('#tutorial-card')?.classList.add('hidden')
   showScreen('screen-title')
   refreshTitle()
@@ -935,6 +976,8 @@ async function boot() {
   const sound = save ? save.settings.sound : true
   setSoundEnabled(sound)
   updateSoundButton(sound)
+  document.body.classList.toggle('large-text', !!save?.settings.largeText)
+  document.body.classList.toggle('reduced-motion', !!save?.settings.reducedMotion)
   setTimeout(() => $('#boot')?.classList.add('hide'), 650)
 }
 

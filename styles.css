@@ -1352,3 +1352,37 @@ body.reduced-motion *, body.reduced-motion *::before, body.reduced-motion *::aft
   .trade-live { grid-template-columns: 1fr; }
   .trade-swap { transform: rotate(90deg); justify-self: center; }
 }
+
+/* Intro hourly note + accessibility */
+.intro-hourly-note {
+  display: flex; align-items: flex-start; gap: 9px; margin-top: 12px; padding: 9px 10px;
+  border-radius: 11px; border: 1px solid rgba(125, 224, 216, .3);
+  background: linear-gradient(100deg, rgba(125, 224, 216, .1), rgba(11, 17, 32, .5));
+}
+.ihn-icon {
+  width: 30px; height: 30px; flex: 0 0 30px; border-radius: 50%; display: inline-flex;
+  align-items: center; justify-content: center; font-size: 15px;
+  background: rgba(125, 224, 216, .12); border: 1px solid rgba(125, 224, 216, .4);
+}
+.ihn-main { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.ihn-main strong { font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: #9ff3ec; }
+.ihn-main small { font-size: 10px; line-height: 1.4; color: #c9d8e6; }
+.ihn-btn {
+  flex: 0 0 auto; border: 1px solid rgba(125, 224, 216, .4); background: rgba(125, 224, 216, .1);
+  color: #bffcf7; border-radius: 20px; padding: 3px 8px; font-size: 9px; font-weight: 800;
+}
+.ihn-btn:hover { background: rgba(125, 224, 216, .2); }
+
+body.large-text .dialog-text { font-size: 15.5px; line-height: 1.55; }
+body.large-text .dialog-name { font-size: 17px; }
+body.large-text .choice-btn span { font-size: 12.5px; }
+body.large-text .choice-btn small { font-size: 10.5px; }
+body.large-text .intro-text { font-size: 14.5px; line-height: 1.65; }
+body.large-text .ihn-main small { font-size: 11.5px; }
+body.large-text .help-card p, body.large-text .modal-body p { font-size: 12.5px; line-height: 1.55; }
+body.large-text .tutorial-card p { font-size: 12.5px; line-height: 1.5; }
+body.large-text .tut-title-wrap strong { font-size: 15.5px; }
+body.large-text .dex-info strong { font-size: 12.5px; }
+body.large-text .dex-info small { font-size: 9.5px; }
+body.large-text .chat-line { font-size: 12px; }
+body.large-text .help-tip, body.large-text .dex-note { font-size: 12px; line-height: 1.55; }

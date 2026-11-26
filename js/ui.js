@@ -936,12 +936,14 @@ export function showSettings({ onReset, onSoundChange } = {}) {
     if (!wrap) return
     wrap.innerHTML = `<div class="setting-row"><div><strong>Effets sonores</strong><small>Petits sons d’interface et de combat.</small></div><button class="toggle ${s.settings.sound ? 'on' : ''}" id="set-sound"><span></span></button></div>
       <div class="setting-row"><div><strong>Animations réduites</strong><small>Moins de particules et de secousses.</small></div><button class="toggle ${s.settings.reducedMotion ? 'on' : ''}" id="set-motion"><span></span></button></div>
+      <div class="setting-row"><div><strong>Texte plus grand</strong><small>Dialogue, aide et tutoriel plus lisibles. Idéal dès 7 ans.</small></div><button class="toggle ${s.settings.largeText ? 'on' : ''}" id="set-large"><span></span></button></div>
       <div class="setting-row"><div><strong>Sauvegarder maintenant</strong><small>Ta progression est aussi sauvegardée automatiquement.</small></div><button class="btn" id="set-save">💾 Sauver</button></div>
       <div class="setting-row"><div><strong>Exporter la sauvegarde</strong><small>Télécharge un fichier JSON de secours.</small></div><button class="btn" id="set-export">⬇ Exporter</button></div>
       <div class="setting-row danger-row"><div><strong>Recommencer l’aventure</strong><small>Efface la sauvegarde locale. Action irréversible.</small></div><button class="btn danger" id="set-reset">Réinitialiser</button></div>
       <div class="credits-box"><strong>Pokémon Templier</strong><span>Fan game jouable, création originale. Aucune affiliation avec Nintendo, Game Freak ou The Pokémon Company.</span><span>Professeur Sable, région de Templier, créatures et musiques procédurales.</span></div>`
     wrap.querySelector('#set-sound').addEventListener('click', () => { s.settings.sound = !s.settings.sound; persist(); onSoundChange?.(s.settings.sound); render() })
-    wrap.querySelector('#set-motion').addEventListener('click', () => { s.settings.reducedMotion = !s.settings.reducedMotion; persist(); render() })
+    wrap.querySelector('#set-motion').addEventListener('click', () => { s.settings.reducedMotion = !s.settings.reducedMotion; document.body.classList.toggle('reduced-motion', s.settings.reducedMotion); persist(); render() })
+    wrap.querySelector('#set-large').addEventListener('click', () => { s.settings.largeText = !s.settings.largeText; document.body.classList.toggle('large-text', s.settings.largeText); persist(); render() })
     wrap.querySelector('#set-save').addEventListener('click', () => persist(false))
     wrap.querySelector('#set-export').addEventListener('click', () => {
       const blob = new Blob([JSON.stringify(s, null, 2)], { type: 'application/json' })
@@ -969,6 +971,7 @@ export function showHelp() {
         <div class="help-card"><h4>Herbes hautes</h4><p>Marche dans les herbes pour rencontrer des Pokémon sauvages des 9 générations. Les Sable Balls servent à les capturer.</p></div>
         <div class="help-card"><h4>Progression</h4><p>8 villages, 8 arènes. Dès 1 badge : Poke Online alpha 1.0. Au 4e badge : Bracelet Templier, Méga-Templion et Sanctuaire des Vents. Les îles s’ouvrent après les 8 badges.</p></div>
         <div class="help-card"><h4>Tutoriel</h4><p>Le tutoriel guidé suit tes premières actions. Tu peux le passer avec ✕ ou le relancer depuis le menu (Tutoriel).</p></div>
+        <div class="help-card"><h4>Accessible dès 7 ans</h4><p>Textes simples, tutoriel guidé, introduction passable et option « Texte plus grand » dans les réglages. Aucun achat, aucune donnée envoyée.</p></div>
       </div>
       <div class="help-tip"><strong>Astuce du Professeur Sable :</strong> à Oubar, Blue et Red t’entraînent sans limite. Un bon dresseur sait quand il faut retourner s’entraîner.</div>`
   })

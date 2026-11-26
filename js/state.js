@@ -85,7 +85,7 @@ export function newGame(profile, starterId) {
     caught: { [starterId]: true },
     online: { points: 0, wins: 0, losses: 0 },
     stats: { battles: 0, wins: 0, catches: 0, steps: 0, friendsMade: 0 },
-    settings: { sound: true, reducedMotion: false },
+    settings: { sound: true, reducedMotion: false, largeText: false },
     log: [{ at: Date.now(), text: 'Le Professeur Sable t’a confié ton premier Pokémon.' }]
   }
   return save
@@ -107,6 +107,7 @@ export function sanitizeSave(raw) {
   raw.online ||= { points: 0, wins: 0, losses: 0 }
   raw.stats ||= { battles: 0, wins: 0, catches: 0, steps: 0, friendsMade: 0 }
   raw.settings ||= { sound: true, reducedMotion: false }
+  raw.settings.largeText ??= false
   raw.log ||= []
   for (const mon of [...raw.team, ...raw.box]) {
     if (!SPECIES[mon.species]) return null

@@ -545,7 +545,7 @@ export const LOCATIONS = {
     wild: [['aquilon', 23, 27], ['verdillon', 23, 27], ['voltiz', 24, 27]],
     npcs: [
       { id: 'milo', name: 'Milo', x: 8, y: 12, color: '#4b8ef7', role: 'boy', dialog: ['Marina dit que la mer est une bibliothèque. Chaque vague est une page.', 'Moi, je sais juste nager. C’est déjà pas mal.'], friendable: true },
-      { id: 'naia', name: 'Naïa', x: 22, y: 13, color: '#8ecae6', role: 'girl', dialog: ['Les échanges de Pokémon en ligne reprendront le 9 décembre. J’ai hâte !', 'En attendant, on peut s’entraîner contre l’IA de la Ligue. Elle ne triche pas. Trop.'], friendable: true }
+      { id: 'naia', name: 'Naïa', x: 22, y: 13, color: '#8ecae6', role: 'girl', dialog: ['Poke Online alpha 1.0 est ouvert dès le premier badge. On peut même échanger des Pokémon !', 'Les combats de Ligue sont simulés localement pour l’instant. L’IA ne triche pas. Trop.'], friendable: true }
     ]
   },
   voltaria: {
@@ -565,7 +565,7 @@ export const LOCATIONS = {
     wild: [['noctule', 33, 37], ['psykor', 33, 37], ['draconis', 34, 37]],
     npcs: [
       { id: 'ness', name: 'Ness', x: 8, y: 12, color: '#b9a8e8', role: 'girl', dialog: ['Les lampadaires de Noctemport sont allumés par des Pokémon de nuit. Ils sont payés en baies.', 'Nyx ne dort jamais. Enfin, je crois. On ne le voit jamais dormir.'], friendable: true },
-      { id: 'gaspard', name: 'Gaspard', x: 22, y: 12, color: '#6b5b95', role: 'hiker', dialog: ['La Ligue en ligne ouvrira après la maintenance. Les rangs vont de Bronze à Légende.', 'Si peu de joueurs sont connectés, l’IA prend le relais. Elle est redoutable.'], friendable: true }
+      { id: 'gaspard', name: 'Gaspard', x: 22, y: 12, color: '#6b5b95', role: 'hiker', dialog: ['Poke Online alpha 1.0 est ouvert : les rangs vont de Bronze à Légende.', 'Si peu de joueurs sont connectés, l’IA prend le relais. Elle est redoutable.'], friendable: true }
     ]
   },
   cimesacree: {
