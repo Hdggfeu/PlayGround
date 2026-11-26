@@ -153,14 +153,27 @@ class GameAudio {
 const audio = new GameAudio();
 
 /* ── State ───────────────────────────────────────────────────────── */
+const ACCOUNT_STORE_KEY = "snox-kingdom-accounts-v1";
+const ACTIVE_ACCOUNT_KEY = "snox-kingdom-active-account-v1";
+
+function readAccountStore() {
+  try {
+    const store = JSON.parse(localStorage.getItem(ACCOUNT_STORE_KEY) || "null");
+    if (store && store.accounts && typeof store.accounts === "object") return store;
+  } catch {}
+  return { version: 1, activeId: "", accounts: {} };
+}
+
 function loadState() {
   try {
+    const store = readAccountStore();
+    const activeId = [store.activeId, localStorage.getItem(ACTIVE_ACCOUNT_KEY)]
+      .find((id) => id && store.accounts[id]?.state);
+    if (activeId) return ensureStateShape(store.accounts[activeId].state);
     const raw = localStorage.getItem(SAVE_KEY);
-    if (!raw) return makeDefaultState();
-    return ensureStateShape(JSON.parse(raw));
-  } catch {
-    return makeDefaultState();
-  }
+    if (raw) return ensureStateShape(JSON.parse(raw));
+  } catch {}
+  return makeDefaultState();
 }
 
 const G = {
@@ -184,6 +197,7 @@ const G = {
   opponents: null,
   lastPointerType: "mouse",
   tutorialDone: false,
+  switchingAccount: false,
   sheetTimer: 0,
   pendingToasts: [],
   shake: 0,
@@ -199,13 +213,34 @@ G.state.sound = G.state.sound !== false;
 audio.enabled = G.state.sound;
 
 /* ── Persistence & offline economy ───────────────────────────────── */
+let lastStorageWarning = 0;
+function reportStorageFailure(error) {
+  console.warn("Sauvegarde locale impossible", error);
+  if (now() - lastStorageWarning < 8000) return;
+  lastStorageWarning = now();
+  showToast("Sauvegarde locale impossible. Vérifie l'espace disponible dans ce navigateur.", "error", "info");
+}
+
 function saveState() {
+  if (G.switchingAccount) return;
   G.state.lastSaved = now();
+  const id = G.state.profile.snoxId;
+  const store = readAccountStore();
+  store.activeId = id;
+  store.accounts[id] = {
+    profileName: G.state.profile.name,
+    updatedAt: G.state.lastSaved,
+    state: G.state,
+  };
   try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(G.state));
+    localStorage.setItem(ACCOUNT_STORE_KEY, JSON.stringify(store));
   } catch (error) {
-    console.warn("Sauvegarde impossible", error);
+    reportStorageFailure(error);
+    return;
   }
+  try { localStorage.setItem(ACTIVE_ACCOUNT_KEY, id); } catch {}
+  // Keep the original save key as a backwards-compatible active-profile backup.
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } catch {}
 }
 
 function applyOfflineProgress() {
@@ -1537,7 +1572,7 @@ function openSnoxId() {
     <div class="snox-modal-head">
       <div class="snox-logo">${icon("crown")} SNOX ID</div>
       <h2>Ton identité de chef</h2>
-      <p>Un seul Snox ID pour ton royaume, tes sauvegardes et tes futurs jeux Snox.</p>
+      <p>Ton Snox ID identifie ton profil de jeu sur cet appareil.</p>
     </div>
     <div class="id-card">
       <div class="id-card-top">
@@ -1553,7 +1588,7 @@ function openSnoxId() {
         <button class="id-copy" data-action="copy-id" aria-label="Copier mon Snox ID">${icon("copy")}</button>
       </div>
       <div class="id-card-foot">
-        <span>${icon("shield")} Compte local sécurisé</span>
+        <span>${icon("shield")} Profil sur cet appareil</span>
         <span>Depuis le <b>${joined}</b></span>
       </div>
     </div>
@@ -1562,15 +1597,106 @@ function openSnoxId() {
       <div class="snox-info-row"><span>Trophées</span><b>${formatNumber(p.trophies)}</b></div>
       <div class="snox-info-row"><span>Or pillé</span><b>${formatNumber(G.state.stats.goldLooted)}</b></div>
     </div>
-    <p class="snox-note">Ton Snox ID et ta progression sont enregistrés dans ce navigateur. Ce projet est un jeu original indépendant, sans affiliation avec Supercell.</p>
+    <p class="snox-note">Les profils et sauvegardes restent dans le stockage local de ce navigateur. Un Snox ID seul ne permet pas de récupérer une sauvegarde sur un autre appareil. Ce projet est un jeu original indépendant, sans affiliation avec Supercell.</p>
     <div class="modal-actions split">
       <button class="btn ghost" data-action="edit-name">${icon("helmet")} Changer de pseudo</button>
       <button class="btn ghost" data-action="copy-id">${icon("copy")} Copier l'ID</button>
     </div>
     <div class="modal-actions">
-      <button class="btn red" data-action="new-profile">${icon("lock")} Créer un nouveau Snox ID</button>
+      <button class="btn gold" data-action="account-manager">${icon("helmet")} Gérer les Snox ID</button>
     </div>`;
   openModal(html);
+}
+
+function openAccountManager(mode = "login") {
+  saveState();
+  const store = readAccountStore();
+  const accounts = Object.entries(store.accounts)
+    .map(([id, entry]) => ({ id, state: entry.state }))
+    .filter((entry) => entry.state?.profile)
+    .sort((a, b) => (a.id === G.state.profile.snoxId ? -1 : b.id === G.state.profile.snoxId ? 1 : 0));
+  const accountRows = accounts.length ? accounts.map(({ id, state }) => {
+    const profile = state.profile;
+    const hall = state.buildings?.find((building) => building.type === "townhall")?.level || 1;
+    const current = id === G.state.profile.snoxId;
+    return `<div class="account-entry ${current ? "current" : ""}">
+      <span><b>${escapeHtml(profile.name || "Chef")}</b><small>${escapeHtml(id)} · HDV ${hall} · ${formatNumber(profile.trophies || 0)} trophées · ${escapeHtml(profile.clan || "Sans clan")}</small></span>
+      ${current ? `<span class="account-current">ACTIF</span>` : `<button class="btn ghost small" data-action="switch-account" data-id="${escapeHtml(id)}">Ouvrir</button>`}
+    </div>`;
+  }).join("") : `<p class="snox-note">Aucun autre profil n'est enregistré sur cet appareil.</p>`;
+  const form = mode === "create" ? `
+    <h3 class="account-section-title">Créer un profil local</h3>
+    <form id="accountCreateForm" class="account-form">
+      <label for="accountNameInput">Pseudo de chef</label>
+      <input id="accountNameInput" maxlength="18" minlength="2" required autocomplete="nickname" placeholder="Ex. Chef Aurore" />
+      <p class="account-help">Un nouvel ID et un royaume indépendant seront créés sur cet appareil.</p>
+      <button class="btn gold" type="submit">${icon("check")} Créer le profil</button>
+    </form>
+    <button class="btn ghost account-mode-btn" data-action="account-mode-login">J'ai déjà un Snox ID local</button>` : `
+    <h3 class="account-section-title">Ouvrir un profil local</h3>
+    <form id="accountLoginForm" class="account-form">
+      <label for="accountIdInput">Snox ID enregistré sur cet appareil</label>
+      <input id="accountIdInput" maxlength="14" required autocomplete="off" placeholder="SNOX-ABCD-EFGH" />
+      <button class="btn gold" type="submit">${icon("helmet")} Ouvrir ce profil</button>
+    </form>
+    <button class="btn ghost account-mode-btn" data-action="account-mode-create">Créer un nouveau profil</button>`;
+  openModal(`
+    <div class="settings-head">
+      <small>SNOX ID · PROFILS LOCAUX</small>
+      <h2>Changer de royaume</h2>
+      <p>Chaque profil garde sa propre armée, ses trophées, son HDV, son clan et sa progression.</p>
+    </div>
+    <div class="account-list">${accountRows}</div>
+    ${form}
+    <p class="snox-note">Connexion locale uniquement : les profils ne sont pas envoyés sur un serveur et ne sont pas récupérables depuis un autre navigateur ou appareil.</p>`);
+
+  const createForm = $("accountCreateForm");
+  createForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const name = ($("accountNameInput")?.value || "").trim().replace(/[<>]/g, "").slice(0, 18);
+    if (name.length < 2) {
+      showToast("Choisis un pseudo d'au moins 2 caractères.", "error");
+      return;
+    }
+    const next = makeDefaultState();
+    next.profile.name = name;
+    next.profile.snoxId = makeSnoxId();
+    while (store.accounts[next.profile.snoxId]) next.profile.snoxId = makeSnoxId();
+    activateAccount(next);
+  });
+
+  const loginForm = $("accountLoginForm");
+  loginForm?.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const id = ($("accountIdInput")?.value || "").trim().toUpperCase();
+    const saved = store.accounts[id];
+    if (!/^SNOX-[A-HJ-NP-Z2-9]{4}-[A-HJ-NP-Z2-9]{4}$/.test(id) || !saved?.state) {
+      showToast("Aucun profil avec cet ID dans ce navigateur.", "error", "info");
+      return;
+    }
+    activateAccount(ensureStateShape(saved.state));
+  });
+}
+
+function activateAccount(state, { removeId } = {}) {
+  const id = state.profile.snoxId;
+  const store = readAccountStore();
+  if (removeId) delete store.accounts[removeId];
+  store.activeId = id;
+  store.accounts[id] = { profileName: state.profile.name, updatedAt: now(), state };
+  G.switchingAccount = true;
+  try {
+    // The account store is authoritative; commit it before updating compatibility keys.
+    localStorage.setItem(ACCOUNT_STORE_KEY, JSON.stringify(store));
+  } catch (error) {
+    G.switchingAccount = false;
+    console.warn("Changement de profil impossible", error);
+    showToast("Stockage local indisponible : profil non changé.", "error");
+    return;
+  }
+  try { localStorage.setItem(ACTIVE_ACCOUNT_KEY, id); } catch {}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch {}
+  location.reload();
 }
 
 function openSettings() {
@@ -2773,11 +2899,10 @@ function claimMission(id) {
 }
 
 function resetGame() {
-  try { localStorage.removeItem(SAVE_KEY); } catch {}
+  const oldId = G.state.profile.snoxId;
   const fresh = makeDefaultState();
   fresh.profile.snoxId = makeSnoxId();
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(fresh)); } catch {}
-  location.reload();
+  activateAccount(fresh, { removeId: oldId });
 }
 
 function copySnoxId() {
@@ -2861,7 +2986,16 @@ function handleAction(action, dataset, element) {
       break;
     case "copy-id": copySnoxId(); break;
     case "edit-name": openEditName(); break;
-    case "new-profile": openResetConfirm(); break;
+    case "new-profile": openAccountManager("create"); break;
+    case "account-manager": openAccountManager(); break;
+    case "account-mode-create": openAccountManager("create"); break;
+    case "account-mode-login": openAccountManager("login"); break;
+    case "switch-account": {
+      const id = dataset.id;
+      const saved = readAccountStore().accounts[id];
+      if (saved?.state) activateAccount(ensureStateShape(saved.state));
+      break;
+    }
     case "confirm-reset": resetGame(); break;
     case "reset-game": openResetConfirm(); break;
     case "close-modal": closeModal(); break;

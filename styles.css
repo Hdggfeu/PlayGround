@@ -1693,6 +1693,21 @@ svg {
 .snox-info-row span { color: #93adcd; font: 700 9.5px/1 "Nunito", sans-serif; }
 .snox-info-row b { color: #eaf5ff; font: 800 10.5px/1 "Nunito", sans-serif; }
 .snox-note { margin: 11px 0 0; padding: 9px 11px; border-radius: 10px; background: rgba(86, 225, 240, 0.06); border: 1px solid rgba(93, 227, 241, 0.12); color: #95c9d8; font: 600 9px/1.45 "Nunito", sans-serif; }
+.account-list { display: grid; gap: 6px; max-height: 180px; overflow-y: auto; margin-top: 12px; }
+.account-entry { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 10px; border: 1px solid rgba(158, 201, 255, .13); border-radius: 11px; background: rgba(0, 0, 0, .14); }
+.account-entry.current { border-color: rgba(255, 213, 108, .36); background: rgba(255, 213, 108, .06); }
+.account-entry > span:first-child { display: grid; min-width: 0; gap: 3px; }
+.account-entry b { color: #f3f8ff; font: 800 10px/1.2 "Nunito", sans-serif; }
+.account-entry small { overflow-wrap: anywhere; color: #8da7c6; font: 600 8px/1.35 "Nunito", sans-serif; }
+.account-current { flex: 0 0 auto; color: #ffda7c; font: 800 8px "Nunito", sans-serif; letter-spacing: .08em; }
+.account-section-title { margin: 16px 0 7px; color: #f5f8ff; font: 800 13px "Baloo 2", sans-serif; }
+.account-form { display: grid; gap: 7px; }
+.account-form label { color: #9db5d2; font: 700 9px "Nunito", sans-serif; }
+.account-form input { width: 100%; height: 42px; border: 1px solid rgba(158, 201, 255, .2); border-radius: 11px; background: rgba(0, 0, 0, .22); color: #eef7ff; padding: 0 11px; font: 700 12px "Nunito", sans-serif; outline: none; }
+.account-form input:focus { border-color: rgba(143, 234, 255, .65); }
+.account-form input::placeholder { color: #607995; }
+.account-help { margin: 0; color: #829cbd; font: 600 9px/1.4 "Nunito", sans-serif; }
+.account-mode-btn { width: 100%; margin-top: 8px; }
 .modal-actions { display: grid; gap: 7px; margin-top: 14px; }
 .modal-actions.split { grid-template-columns: 1fr 1fr; }
 .modal-actions .btn { min-height: 40px; }
