@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0b1120">
+  <meta name="description" content="Pokémon Templier — une aventure fan-made dans un monde de sable, huit villages, huit arènes et deux îles.">
+  <title>Pokémon Templier — Le Serment des Sables</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230b1120'/><path d='M50 12l10 26 28 4-21 19 6 28-23-15-23 15 6-28-21-19 28-4z' fill='%23f0c96b'/></svg>">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="boot" class="boot">
+    <div class="boot-mark">⚜</div>
+    <div class="boot-title">POKÉMON TEMPLIER</div>
+    <div class="boot-sub">Chargement des sables…</div>
+    <div class="boot-bar"><span></span></div>
+  </div>
+
+  <main id="app">
+    <!-- TITLE -->
+    <section id="screen-title" class="screen active">
+      <svg class="title-scene" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0a1024"/><stop offset=".38" stop-color="#2a2442"/><stop offset=".62" stop-color="#7a4a45"/><stop offset=".8" stop-color="#d98a4a"/><stop offset="1" stop-color="#f2c46a"/>
+          </linearGradient>
+          <radialGradient id="sun" cx="50%" cy="50%" r="50%">
+            <stop offset="0" stop-color="#fff6d0"/><stop offset=".45" stop-color="#ffd27a"/><stop offset="1" stop-color="#ffb35c" stop-opacity="0"/>
+          </radialGradient>
+          <linearGradient id="dune1" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#d9a45a"/><stop offset="1" stop-color="#8a5b2e"/>
+          </linearGradient>
+          <linearGradient id="dune2" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#b87a3f"/><stop offset="1" stop-color="#5c3a1f"/>
+          </linearGradient>
+          <linearGradient id="dune3" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#7a4a2a"/><stop offset="1" stop-color="#2a1a12"/>
+          </linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="8"/></filter>
+        </defs>
+        <rect width="1440" height="900" fill="url(#sky)"/>
+        <circle cx="1080" cy="300" r="180" fill="url(#sun)" opacity=".85"/>
+        <circle cx="1080" cy="300" r="70" fill="#fff1b8" opacity=".9"/>
+        <g opacity=".18" fill="#fff">
+          <circle cx="180" cy="120" r="2"/><circle cx="320" cy="190" r="1.5"/><circle cx="520" cy="90" r="2"/><circle cx="760" cy="160" r="1.4"/><circle cx="940" cy="80" r="1.8"/><circle cx="1260" cy="150" r="1.6"/><circle cx="1350" cy="80" r="2"/><circle cx="60" cy="260" r="1.4"/>
+        </g>
+        <path d="M0 610 Q220 540 430 590 T860 560 T1440 610 V900 H0Z" fill="url(#dune1)"/>
+        <path d="M0 690 Q260 600 520 660 T980 620 T1440 680 V900 H0Z" fill="url(#dune2)"/>
+        <path d="M0 790 Q300 700 620 760 T1100 720 T1440 780 V900 H0Z" fill="url(#dune3)"/>
+        <!-- citadel silhouette -->
+        <g transform="translate(770 430)" opacity=".9">
+          <path d="M-150 180 L-150 30 L-110 30 L-110 -10 L-70 10 L-70 30 L-30 30 L-30 -40 L0 -80 L30 -40 L30 30 L70 30 L70 10 L110 -10 L110 30 L150 30 L150 180 Z" fill="#241a1a"/>
+          <path d="M-150 30 L-110 30 L-110 -10 L-70 10 L-70 30 L-30 30 L-30 -40 L0 -80 L30 -40 L30 30 L70 30 L70 10 L110 -10 L110 30 L150 30" fill="none" stroke="#f0c96b" stroke-width="2" opacity=".35"/>
+          <rect x="-14" y="120" width="28" height="60" rx="4" fill="#0b1120"/>
+          <rect x="-86" y="90" width="20" height="28" fill="#f0c96b" opacity=".28"/>
+          <rect x="66" y="90" width="20" height="28" fill="#f0c96b" opacity=".28"/>
+          <path d="M0 -80 L0 -140" stroke="#f0c96b" stroke-width="3"/>
+          <path d="M0 -140 l34 12 -34 12z" fill="#f0c96b"/>
+        </g>
+        <!-- palms -->
+        <g transform="translate(150 640)" fill="#1c1410">
+          <path d="M0 0 C10 -50 20 -90 12 -130" stroke="#1c1410" stroke-width="10" fill="none"/>
+          <path d="M12 -130 C-30 -160 -60 -150 -80 -130 C-40 -142 -10 -128 12 -118Z"/>
+          <path d="M12 -130 C50 -170 90 -160 110 -136 C70 -146 38 -128 12 -118Z"/>
+          <path d="M12 -130 C0 -180 -20 -200 -50 -206 C-20 -184 -4 -158 8 -122Z"/>
+        </g>
+        <g transform="translate(1290 680) scale(.8)" fill="#1c1410">
+          <path d="M0 0 C10 -50 20 -90 12 -130" stroke="#1c1410" stroke-width="10" fill="none"/>
+          <path d="M12 -130 C-30 -160 -60 -150 -80 -130 C-40 -142 -10 -128 12 -118Z"/>
+          <path d="M12 -130 C50 -170 90 -160 110 -136 C70 -146 38 -128 12 -118Z"/>
+        </g>
+        <g fill="#1c1410" opacity=".7">
+          <path d="M420 250 q14 -10 28 0 q-14 -4 -28 0"/><path d="M470 220 q10 -8 20 0 q-10 -3 -20 0"/>
+        </g>
+      </svg>
+      <canvas id="title-particles" class="title-particles"></canvas>
+      <div class="title-content">
+        <div class="title-kicker"><span></span>Une aventure forgée dans le sable<span></span></div>
+        <h1 class="title-logo">
+          <span class="logo-pokemon">POKÉMON</span>
+          <span class="logo-templier">TEMPLIER</span>
+          <span class="logo-underline"></span>
+        </h1>
+        <p class="title-sub">Huit villages. Huit arènes. Deux îles. Un serment.</p>
+        <div class="title-actions">
+          <button id="btn-new" class="btn gold big">⚜ Nouvelle partie</button>
+          <button id="btn-continue" class="btn big" disabled>Continuer</button>
+          <button id="btn-online-title" class="btn ghost">🌐 Poke Online MMO <span class="maint-pill">maintenance</span></button>
+        </div>
+        <div class="title-save" id="title-save">Aucune sauvegarde détectée</div>
+      </div>
+      <footer class="title-footer">
+        <span>Fan game original · non officiel · 2026</span>
+        <span class="title-tip">Astuce : le Professeur Sable explique tout au début.</span>
+        <button id="btn-sound" class="icon-btn" aria-label="Son">🔊</button>
+      </footer>
+    </section>
+
+    <!-- INTRO -->
+    <section id="screen-intro" class="screen">
+      <div class="intro-bg"></div>
+      <div class="intro-layout">
+        <div class="intro-art" id="intro-art"></div>
+        <div class="intro-panel panel">
+          <div class="intro-top">
+            <span class="eyebrow" id="intro-eyebrow">Le monde de Templier</span>
+            <span class="intro-step" id="intro-step">01</span>
+          </div>
+          <div class="intro-speaker">
+            <span class="speaker-dot"></span>
+            <strong id="intro-speaker">Professeur Sable</strong>
+            <small id="intro-role">Chercheur de sable</small>
+          </div>
+          <div class="intro-text" id="intro-text"></div>
+          <div class="intro-form" id="intro-form"></div>
+          <div class="intro-actions" id="intro-actions"></div>
+        </div>
+      </div>
+      <button class="intro-skip" id="intro-skip">Passer l’introduction ▸</button>
+    </section>
+
+    <!-- GAME -->
+    <section id="screen-game" class="screen">
+      <header id="hud">
+        <div class="hud-left">
+          <div class="hud-location">
+            <span class="eyebrow" id="hud-region">Région de Templier</span>
+            <h2 id="hud-loc">Sablonville</h2>
+            <small id="hud-sub">Berceau des Sables</small>
+          </div>
+          <div class="hud-badges" id="hud-badges"></div>
+        </div>
+        <div class="hud-objective" id="hud-objective">Objectif</div>
+        <div class="hud-right">
+          <button class="hud-btn" data-menu="map" title="Carte du monde (M)"><span>🗺</span><small>Carte</small></button>
+          <button class="hud-btn" data-menu="card" title="Carte de dresseur (C)"><span>🎴</span><small>Dresseur</small></button>
+          <button class="hud-btn" data-menu="friends" title="Amis (F)"><span>🤝</span><small>Amis</small></button>
+          <button class="hud-btn" data-menu="online" title="Poke Online MMO (O)"><span>🌐</span><small>Online</small></button>
+          <button class="hud-btn" data-menu="bag" title="Sac (B)"><span>🎒</span><small>Sac</small></button>
+          <button class="hud-btn" data-menu="team" title="Équipe"><span>🐾</span><small>Équipe</small></button>
+          <button class="hud-btn" data-menu="pause" title="Menu (Échap)"><span>☰</span><small>Menu</small></button>
+        </div>
+      </header>
+      <div id="world-wrap">
+        <canvas id="world"></canvas>
+        <div id="location-banner" class="location-banner"></div>
+        <div id="world-prompt" class="world-prompt"></div>
+        <div class="world-controls-hint" id="world-controls-hint">Flèches / ZQSD pour marcher · E pour interagir · M pour la carte</div>
+        <div class="world-weather" id="world-weather"></div>
+      </div>
+      <div id="game-bottom">
+        <div id="hint-bar" class="hint-bar">
+          <span class="hint-key">E</span>
+          <span id="hint-text">Approche-toi d’un personnage ou d’un bâtiment.</span>
+        </div>
+        <div id="team-strip" class="team-strip"></div>
+      </div>
+      <div id="touch-controls" class="touch-controls">
+        <div class="dpad">
+          <button data-dir="up" class="dpad-btn up" aria-label="Haut">▲</button>
+          <button data-dir="left" class="dpad-btn left" aria-label="Gauche">◀</button>
+          <button data-dir="right" class="dpad-btn right" aria-label="Droite">▶</button>
+          <button data-dir="down" class="dpad-btn down" aria-label="Bas">▼</button>
+        </div>
+        <div class="touch-actions">
+          <button id="touch-b" class="touch-round small" aria-label="Menu">☰</button>
+          <button id="touch-a" class="touch-round" aria-label="Interagir">A</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast-root"></div>
+  <div id="modal-root"></div>
+  <div id="dialog-root"></div>
+  <div id="battle-root"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
