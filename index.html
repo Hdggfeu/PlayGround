@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080b10">
+<title>Pixel Forge — Game Dev Tycoon</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b1017'/%3E%3Cpath d='M8 22V10h7a5 5 0 0 1 0 10H8' fill='none' stroke='%235eead4' stroke-width='3'/%3E%3Ccircle cx='24' cy='11' r='2.4' fill='%23a78bfa'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ TITLE ============ -->
+  <section id="title-screen">
+    <div class="t-bg" aria-hidden="true">
+      <div class="t-blob b1"></div>
+      <div class="t-blob b2"></div>
+      <div class="t-blob b3"></div>
+      <div class="t-grid"></div>
+    </div>
+    <div class="t-float f1"><span>9.2</span><small>POLYGON PULSE</small></div>
+    <div class="t-float f2"><span>8.7</span><small>INDIE BYTE</small></div>
+    <div class="t-float f3"><b>GOTY</b><small>2026</small></div>
+    <div class="t-float f4"><span>+12,480</span><small>NEW FANS</small></div>
+
+    <div class="t-wrap">
+      <div class="t-badge"><i></i> A GAME DEV TYCOON</div>
+      <h1 class="t-logo"><span>PIXEL</span><em>FORGE</em></h1>
+      <p class="t-sub">Build a studio. Ship hits. Chase the perfect review.</p>
+
+      <div class="t-card">
+        <label for="studio-name">NAME YOUR STUDIO</label>
+        <div class="t-input">
+          <input id="studio-name" maxlength="26" value="Neon Otter Games" autocomplete="off" spellcheck="false" aria-label="Studio name">
+          <button class="dice" id="name-shuffle" type="button" aria-label="Random studio name">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1" fill="currentColor"/><circle cx="15.5" cy="8.5" r="1" fill="currentColor"/><circle cx="8.5" cy="15.5" r="1" fill="currentColor"/></svg>
+          </button>
+        </div>
+        <button class="btn btn-primary btn-lg t-start" id="start-btn" type="button">Start Game</button>
+        <button class="btn btn-ghost t-continue" id="continue-btn" type="button" hidden>Continue Studio</button>
+        <p class="t-hint">Autosaves to this browser · No account needed</p>
+      </div>
+
+      <div class="t-features">
+        <span>◆ Design &amp; ship games</span>
+        <span>◆ Hire a dream team</span>
+        <span>◆ Chase Game of the Year</span>
+      </div>
+    </div>
+    <div class="t-foot">v1.0 · a tiny tycoon about making big games</div>
+  </section>
+
+  <!-- ============ GAME SHELL ============ -->
+  <div id="shell" hidden>
+    <header id="topbar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="9" fill="#0f1720" stroke="#243040"/><path d="M8.5 22.5V9.5h6.2a4.6 4.6 0 0 1 0 9.2H8.5" stroke="#5eead4" stroke-width="2.6" stroke-linecap="round"/><circle cx="23.4" cy="10.6" r="2.1" fill="#a78bfa"/></svg>
+        </div>
+        <div class="brand-text"><strong>PIXEL FORGE</strong><span>game dev tycoon</span></div>
+      </div>
+      <div class="topstats" id="topstats"></div>
+      <div class="top-actions">
+        <button class="icon-btn" id="sound-btn" data-action="sound" aria-label="Toggle sound"></button>
+        <button class="icon-btn" id="fast-btn" data-action="fast" aria-label="Fast forward" title="Fast forward"></button>
+        <button class="btn btn-primary advance-btn" data-action="advance" title="Advance one week (Space)">
+          <span class="adv-icon"></span><span class="adv-label">Advance Week</span><kbd>SPACE</kbd>
+        </button>
+        <button class="icon-btn" data-action="menu" aria-label="Menu"></button>
+      </div>
+    </header>
+    <aside id="sidebar"></aside>
+    <main id="main" tabindex="-1"></main>
+    <nav id="bottomnav" aria-label="Main navigation"></nav>
+  </div>
+
+  <div id="modal-root"></div>
+  <div id="toast-root" aria-live="polite"></div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
