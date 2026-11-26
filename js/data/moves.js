@@ -279,9 +279,11 @@ export const BADGES = [
   { id:'bloom', name:'Bloom Badge', color:'#57b94c', icon:'❀', leader:'Rosa', town:'Goldleaf Village' },
   { id:'frost', name:'Frost Badge', color:'#63cfd4', icon:'❄', leader:'Frost', town:'Frosthollow' },
   { id:'ember', name:'Ember Badge', color:'#ef7d32', icon:'🔥', leader:'Blaze', town:'Emberfall' },
+  { id:'moon', name:'Moon Badge', color:'#e08cc0', icon:'☾', leader:'Luna', town:'Moonvale' },
   { id:'tide', name:'Tide Badge', color:'#4f8fe8', icon:'🌊', leader:'Marina', town:'Tidecrest' },
   { id:'spark', name:'Spark Badge', color:'#f2c744', icon:'⚡', leader:'Volt', town:'Stormwatch' },
   { id:'terra', name:'Terra Badge', color:'#b0a044', icon:'⛰', leader:'Terra', town:'Dunebloom' },
+  { id:'iron', name:'Iron Badge', color:'#8fa3b8', icon:'⚙', leader:'Magnus', town:'Ironhold' },
 ]
 
 export function statsAt (sp, level, ivs = [15,15,15,15,15,15]) {

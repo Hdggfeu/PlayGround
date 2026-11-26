@@ -1,5 +1,5 @@
 import { DEX_BY_ID } from '../data/pokedex.js'
-import { MOVES, ITEMS, TYPE_COLORS, effectiveness, effLabel, typeGradient, statsAt, expForLevel } from '../data/moves.js'
+import { MOVES, ITEMS, TYPE_COLORS, BADGES, effectiveness, effLabel, typeGradient, statsAt, expForLevel } from '../data/moves.js'
 import { createMon, monStats, maxHp, gainExp, evolutionOptions, evolveMon, expToNext, healMon, syncMoves, expProgress } from '../core/state.js'
 import { clamp } from '../core/utils.js'
 import { drawTrainer } from '../render/sprites.js'
@@ -68,7 +68,7 @@ export class Battle {
     this.el.submenu.classList.add('hidden')
     this.el.catchAnim.classList.add('hidden')
     this.setArena(config.biome)
-    this.el.mode.textContent = this.isWild ? t('battle.wild') : config.type === 'gym' ? t('battle.gym') : config.type === 'champion' ? t('battle.champion') : t('battle.trainer')
+    this.el.mode.textContent = this.isWild ? t('battle.wild') : config.type === 'gym' ? t('battle.gym') : config.type === 'champion' ? t('battle.champion') : config.type === 'master' ? t('battle.master') : t('battle.trainer')
     this.el.enemySprite.style.display = ''
     this.el.allySprite.style.display = ''
     this.el.enemySprite.className = 'battle-sprite enemy-sprite enter-enemy'
@@ -569,7 +569,7 @@ export class Battle {
     this.state.stats.wins++
     this.state.save()
     if (this.config.type === 'gym') {
-      const badge = this.app.badges.find(b => b.id === this.config.badgeId)
+      const badge = BADGES.find(b => b.id === this.config.badgeId)
       if (badge) {
         this.state.addBadge(badge.id)
         await this.say(`You earned the ${badge.name}!`, 500)
@@ -579,7 +579,13 @@ export class Battle {
     }
     if (this.config.type === 'champion') {
       this.state.champion = true
+      if (this.config.items) for (const [it, n] of Object.entries(this.config.items)) this.state.addItem(it, n)
       this.app.ui.championCelebration()
+    }
+    if (this.config.type === 'master') {
+      this.state.leagueMaster = true
+      if (this.config.items) for (const [it, n] of Object.entries(this.config.items)) this.state.addItem(it, n)
+      this.app.ui.masterCelebration()
     }
     this.state.save()
     this.app.ui.refreshHUD()

@@ -14,13 +14,15 @@ export const SOLID_TILES = new Set([T.DEEP, T.WATER, T.LAVA])
 export const TILE_NAMES = ['Deep Water','Water','Sand','Grass','Tall Grass','Flowers','Forest','Snow','Ice','Ash','Lava','Path','Plaza','Bridge','Rocky Ground','Marsh','Dirt']
 
 export const TOWNS = [
-  { id:'willowbrook', name:'Willowbrook Town', x:96, y:96, r:11, biome:'meadow', color:'#e9c46a', desc:'The heart of the region. Professor Willow\'s lab and the Champion\'s tower stand here.' },
+  { id:'willowbrook', name:'Willowbrook Town', x:96, y:96, r:11, biome:'meadow', color:'#e9c46a', desc:'The heart of the region. Professor Black\'s lab and the Champion\'s tower stand here.' },
   { id:'goldleaf', name:'Goldleaf Village', x:34, y:100, r:8, biome:'meadow', color:'#57b94c', desc:'A quiet village of gardeners and beekeepers, home of the Bloom Gym.' },
   { id:'frosthollow', name:'Frosthollow', x:92, y:26, r:8, biome:'snow', color:'#63cfd4', desc:'A snug alpine hamlet beneath the aurora, home of the Frost Gym.' },
   { id:'emberfall', name:'Emberfall', x:158, y:80, r:8, biome:'volcano', color:'#ef7d32', desc:'A forge town on the rim of the caldera, home of the Ember Gym.' },
+  { id:'moonvale', name:'Moonvale', x:60, y:58, r:8, biome:'forest', color:'#e08cc0', desc:'A moonlit valley of flower shrines and fairy rings, home of the Moon Gym.' },
   { id:'tidecrest', name:'Tidecrest', x:112, y:166, r:8, biome:'lake', color:'#4f8fe8', desc:'A breezy harbor where the tide sings, home of the Tide Gym.' },
   { id:'stormwatch', name:'Stormwatch', x:158, y:34, r:8, biome:'mountain', color:'#f2c744', desc:'A wind-battered lookout above the clouds, home of the Spark Gym.' },
   { id:'dunebloom', name:'Dunebloom', x:32, y:158, r:8, biome:'desert', color:'#c9a54a', desc:'An oasis market at the desert\'s edge, home of the Terra Gym.' },
+  { id:'ironhold', name:'Ironhold', x:136, y:126, r:8, biome:'mountain', color:'#8fa3b8', desc:'A fortress forge carved into the highlands, home of the Iron Gym.' },
 ]
 
 const B_SPAWN = { x:96, y:105 }
@@ -28,7 +30,7 @@ const B_SPAWN = { x:96, y:105 }
 const BUILDINGS = {
   center: { w:5, h:4, roof:'#d94b4b', wall:'#f3e6cf', sign:'Pokémon Center' },
   mart: { w:5, h:4, roof:'#3d7dd8', wall:'#eef1f7', sign:'Poké Mart' },
-  lab: { w:6, h:4, roof:'#7a5cc4', wall:'#efe9dc', sign:'Willow Lab' },
+  lab: { w:6, h:4, roof:'#7a5cc4', wall:'#efe9dc', sign:'Black Lab' },
   gym: { w:7, h:5, roof:'#57b94c', wall:'#e8e1d2', sign:'Gym' },
   house: { w:4, h:3, roof:'#b06a48', wall:'#f5ead7', sign:'' },
   tower: { w:9, h:7, roof:'#d4af37', wall:'#2f3550', sign:'Champion Tower' },
@@ -238,7 +240,7 @@ export class World {
       this.flattenTown(town)
       town.buildings = []
       if (town.id === 'willowbrook') {
-        town.buildings.push(this.addBuilding(town, 'lab', -8, -9, { name: 'Willow Lab' }))
+        town.buildings.push(this.addBuilding(town, 'lab', -8, -9, { name: 'Black Lab' }))
         town.buildings.push(this.addBuilding(town, 'center', 4, -8))
         town.buildings.push(this.addBuilding(town, 'mart', -11, -3))
         town.buildings.push(this.addBuilding(town, 'tower', 2, 3, { name: 'Champion Tower' }))
@@ -385,9 +387,11 @@ export class World {
     const wb = this.towns[0]
     // Professor outside lab
     const lab = this.buildings.find(b => b.type === 'lab')
-    if (lab) add({ name: 'Prof. Willow', role: 'professor', x: lab.door.x - 1, y: lab.door.y + 1, colors: { shirt:'#8b6fd6', hair:'#e8e8ee', skin:'#f0c8a0' }, lines: ['Every Pokémon in the world is out there, waiting to meet you.', 'Bring me field data — every species you catch is a new page in the Pokédex!'] })
+    if (lab) add({ name: 'Prof. Black', role: 'professor', x: lab.door.x - 1, y: lab.door.y + 1, colors: { shirt:'#232a3d', hair:'#e8e8ee', skin:'#c98f65' }, lines: ['Every Pokémon in the world is out there, waiting to meet you.', 'Bring me field data — every species you catch is a new page in the Pokédex!'] })
     // Champion tower guard
-    add({ name: 'Aster', role: 'champion', x: wb.x + 1, y: wb.y + 7, colors: { shirt:'#d4af37', hair:'#2b2b38', skin:'#c98f65' }, lines: ['The Champion Tower opens only to trainers with six badges.'] })
+    add({ name: 'Aster', role: 'champion', x: wb.x + 1, y: wb.y + 7, colors: { shirt:'#d4af37', hair:'#2b2b38', skin:'#c98f65' }, lines: ['The Champion Tower opens only to trainers with eight badges.'] })
+    // League Master — the final challenge, unlocked after the Champion
+    add({ name: 'Kael', role: 'master', x: wb.x - 1, y: wb.y + 7, colors: { shirt:'#7ee0c8', hair:'#1f2b3a', skin:'#c98f65' }, lines: ['Eight badges. One Champion. Then me.'] })
     // Town NPCs
     const gossip = [
       ['Mina', 'I saw a shiny Pokémon glittering in the tall grass last night!', { shirt:'#e08cc0', hair:'#5a3b2e', skin:'#f3d0b0' }],

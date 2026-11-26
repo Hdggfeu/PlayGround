@@ -145,7 +145,7 @@ export class UI {
     if (!feed) return
     feed.innerHTML = ''
     this.addChat(null, tr('Welcome to Pokéverse Online — every Pokémon, one world.'), false, 'system')
-    this.addChat(null, tr('Tip: talk to Professor Willow by the lab to begin your journey.'), false, 'system')
+    this.addChat(null, tr('Tip: talk to Professor Black by the lab to begin your journey.'), false, 'system')
     setTimeout(() => this.addChat('Nova', tr('new trainer just spawned in Willowbrook! say hi 👋')), 2500)
     setTimeout(() => this.addChat('ShinyHunter', tr('the global chat is live, all 1025 mons are in the wild')), 6000)
   }
@@ -227,12 +227,14 @@ export class UI {
     if (step === 0) p = 0
     else if (step === 1) p = st.caught.size / 3
     else if (step === 2) p = st.badges.includes('bloom') ? 1 : 0
-    else if (step === 3) p = (st.badges.includes('frost') ? 1 : 0) + (st.badges.includes('ember') ? 1 : 0)
-    else if (step === 3) p /= 2
-    else if (step === 4) p = ((st.badges.includes('tide') ? 1 : 0) + (st.badges.includes('spark') ? 1 : 0)) / 2
-    else if (step === 5) p = st.badges.includes('terra') ? 1 : 0
-    else if (step === 6) p = st.champion ? 1 : 0
-    else if (step === 7) p = st.caught.size / 1025
+    else if (step === 3) p = ((st.badges.includes('frost') ? 1 : 0) + (st.badges.includes('ember') ? 1 : 0)) / 2
+    else if (step === 4) p = st.badges.includes('moon') ? 1 : 0
+    else if (step === 5) p = ((st.badges.includes('tide') ? 1 : 0) + (st.badges.includes('spark') ? 1 : 0)) / 2
+    else if (step === 6) p = st.badges.includes('terra') ? 1 : 0
+    else if (step === 7) p = st.badges.includes('iron') ? 1 : 0
+    else if (step === 8) p = 0
+    else if (step === 9) p = st.leagueMaster ? 1 : 0
+    else if (step === 10) p = st.caught.size / 1025
     if ($('quest-progress')) $('quest-progress').style.width = clamp(p, 0, 1) * 100 + '%'
   }
 
@@ -697,24 +699,27 @@ export class UI {
   openQuests () {
     const st = this.state
     const steps = [
-      'Choose your first partner at Willow Lab.',
+      'Choose your first partner at Black Lab.',
       'Catch 3 different Pokémon.',
       'Defeat Rosa at the Goldleaf Gym.',
       'Defeat Frost and Blaze.',
+      'Defeat Luna at the Moonvale Gym.',
       'Defeat Marina and Volt.',
       'Defeat Terra at Dunebloom.',
+      'Defeat Magnus at the Ironhold Gym.',
       'Defeat Champion Aster atop Champion Tower.',
+      'Defeat League Master Kael beside the tower.',
       'Complete your Pokédex and explore the mythic rifts.',
     ]
     const body = this.openModal({
       title: 'JOURNAL', sub: `Main quest · ${st.quest.title}`, size: '',
-      footer: `<span>${st.badges.length}/6 badges · ${st.caught.size} caught</span><button class="btn btn-sm btn-ghost" id="q-close">Close</button>`,
+      footer: `<span>${st.badges.length}/8 badges · ${st.caught.size} caught</span><button class="btn btn-sm btn-ghost" id="q-close">Close</button>`,
     })
     const step = st.questStep
     body.innerHTML = `
       <div class="quest-list">
         <div class="quest-item main"><div class="quest-icon">◆</div><div class="quest-body"><div class="quest-title">${st.quest.title}</div><div class="quest-desc">${st.quest.desc}</div><div class="quest-reward">${st.quest.hint}</div></div></div>
-        ${steps.map((s, i) => `<div class="quest-item" style="${i < step ? 'opacity:.6' : i === step ? 'border-color:rgba(244,201,93,.35)' : 'opacity:.5'}"><div class="quest-icon">${i < step ? '✓' : i === step ? '▶' : '○'}</div><div class="quest-body"><div class="quest-title">Step ${i + 1}: ${['A New Beginning','Field Research','The Bloom Badge','Frost & Flame','Tides & Sparks','The Bedrock Trial','Champion of the Pokéverse','Pokéverse Champion'][i]}</div><div class="quest-desc">${s}</div></div></div>`).join('')}
+        ${steps.map((s, i) => `<div class="quest-item" style="${i < step ? 'opacity:.6' : i === step ? 'border-color:rgba(244,201,93,.35)' : 'opacity:.5'}"><div class="quest-icon">${i < step ? '✓' : i === step ? '▶' : '○'}</div><div class="quest-body"><div class="quest-title">Step ${i + 1}: ${['A New Beginning','Field Research','The Bloom Badge','Frost & Flame','The Moonlit Trial','Tides & Sparks','The Bedrock Trial','The Iron Will','Champion of the Pokéverse','Master League','Pokéverse Legend'][i]}</div><div class="quest-desc">${s}</div></div></div>`).join('')}
       </div>
       <div class="section-title">Side Quests</div>
       <div class="quest-list">${SIDE_QUESTS.map(q => {
@@ -983,12 +988,23 @@ export class UI {
   championCelebration () {
     const st = this.state
     this.openModal({
-      title: 'POKÉVERSE CHAMPION', sub: 'You have conquered the world', size: 'narrow',
-      body: `<div class="center"><div style="font-size:80px;filter:drop-shadow(0 0 40px #f4c95d)">🏆</div><h2 style="margin:8px 0 4px;color:var(--gold)">${st.name} is the Champion!</h2><p style="color:var(--muted);font-size:12px;line-height:1.6">Six badges. 1,025 species waiting in the wild. The Pokéverse is yours to explore.<br>Your team, your story, your legend.</p><div class="row" style="justify-content:center;flex-wrap:wrap;gap:6px;margin-top:12px"><span class="pill">${st.caught.size} caught</span><span class="pill">${st.stats.wins} wins</span><span class="pill">${niceTime(st.playTime)} played</span></div></div>`,
-      footer: `<span>Keep exploring — mythic rifts await.</span><button class="btn btn-sm btn-primary" id="champ-close">Continue</button>`,
+      title: 'POKÉVERSE CHAMPION', sub: 'You have conquered the eight Gyms', size: 'narrow',
+      body: `<div class="center"><div style="font-size:80px;filter:drop-shadow(0 0 40px #f4c95d)">🏆</div><h2 style="margin:8px 0 4px;color:var(--gold)">${st.name} is the Champion!</h2><p style="color:var(--muted);font-size:12px;line-height:1.6">Eight badges. 1,025 species waiting in the wild. One final challenger remains: League Master Kael waits beside the tower.<br>Your team, your story, your legend.</p><div class="row" style="justify-content:center;flex-wrap:wrap;gap:6px;margin-top:12px"><span class="pill">${st.caught.size} caught</span><span class="pill">${st.stats.wins} wins</span><span class="pill">${niceTime(st.playTime)} played</span></div></div>`,
+      footer: `<span>Keep exploring — the Master League awaits.</span><button class="btn btn-sm btn-primary" id="champ-close">Continue</button>`,
     })
     localizeDom(this.modalLayer)
     $('champ-close').onclick = () => this.closeModal()
+  }
+
+  masterCelebration () {
+    const st = this.state
+    this.openModal({
+      title: 'LEAGUE MASTER', sub: 'The final wall has fallen', size: 'narrow',
+      body: `<div class="center"><div style="font-size:80px;filter:drop-shadow(0 0 40px #7ee0c8)">👑</div><h2 style="margin:8px 0 4px;color:#7ee0c8">${st.name} is the League Master!</h2><p style="color:var(--muted);font-size:12px;line-height:1.6">Eight Gyms, the Champion, and the Master League — all conquered. Every region, every species, every story is yours to explore.<br>The Pokéverse will remember your name.</p><div class="row" style="justify-content:center;flex-wrap:wrap;gap:6px;margin-top:12px"><span class="pill">${st.badges.length} badges</span><span class="pill">${st.caught.size} caught</span><span class="pill">${st.stats.wins} wins</span><span class="pill">${niceTime(st.playTime)} played</span></div></div>`,
+      footer: `<span>New Game+? Your save file keeps everything.</span><button class="btn btn-sm btn-primary" id="master-close">Continue</button>`,
+    })
+    localizeDom(this.modalLayer)
+    $('master-close').onclick = () => this.closeModal()
   }
 
   dexNew (id) {

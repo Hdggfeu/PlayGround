@@ -140,7 +140,7 @@ export function expProgress (mon) {
 
 export const SIDE_QUESTS = [
   { id:'collector', title:'Field Notes', desc:'Catch 15 different Pokémon.', check:s => s.caughtCount >= 15, reward:{money:2500, items:{'great-ball':5}} },
-  { id:'explorer', title:'Wanderer', desc:'Visit all seven towns.', check:s => s.visitedTowns.length >= 7, reward:{money:4000, items:{'evolution-stone':1}} },
+  { id:'explorer', title:'Wanderer', desc:'Visit all nine towns.', check:s => s.visitedTowns.length >= 9, reward:{money:4000, items:{'evolution-stone':1}} },
   { id:'treasure', title:'Treasure Hunter', desc:'Open 5 hidden chests.', check:s => s.stats.chests >= 5, reward:{money:3000, items:{'ultra-ball':5}} },
   { id:'veteran', title:'Veteran Trainer', desc:'Win 25 battles.', check:s => s.stats.wins >= 25, reward:{money:6000, items:{'rare-candy':3}} },
 ]
@@ -167,6 +167,7 @@ export class GameState {
     this.playTime = 0
     this.started = false
     this.champion = false
+    this.leagueMaster = false
     this.lastTown = 'willowbrook'
     this.visitedTowns = []
     this.sideClaims = []
@@ -180,25 +181,31 @@ export class GameState {
   get caughtCount () { return this.caught.size }
   get questStep () {
     if (!this.started) return 0
-    if (this.champion) return 7
+    if (this.leagueMaster) return 10
+    if (this.champion) return 9
     if (this.caught.size < 3) return 1
     if (!this.badges.includes('bloom')) return 2
     if (!this.badges.includes('frost') || !this.badges.includes('ember')) return 3
-    if (!this.badges.includes('tide') || !this.badges.includes('spark')) return 4
-    if (!this.badges.includes('terra')) return 5
-    return 6
+    if (!this.badges.includes('moon')) return 4
+    if (!this.badges.includes('tide') || !this.badges.includes('spark')) return 5
+    if (!this.badges.includes('terra')) return 6
+    if (!this.badges.includes('iron')) return 7
+    return 8
   }
 
   get quest () {
     const steps = [
-      { title:'A New Beginning', desc:'Choose your first partner in Willow Lab.', hint:'Talk to Professor Willow.' },
+      { title:'A New Beginning', desc:'Choose your first partner in Black Lab.', hint:'Talk to Professor Black.' },
       { title:'Field Research', desc:'Catch 3 different Pokémon to fill the Pokédex.', hint:`Caught ${this.caught.size}/3` },
       { title:'The Bloom Badge', desc:'Defeat Rosa at the Goldleaf Gym (west).', hint:'Recommended Lv. 12+' },
       { title:'Frost & Flame', desc:'Defeat Frost in Frosthollow and Blaze in Emberfall.', hint:`${this.badges.includes('frost') ? '✓' : '○'} Frost   ${this.badges.includes('ember') ? '✓' : '○'} Blaze` },
+      { title:'The Moonlit Trial', desc:'Defeat Luna at the Moonvale Gym.', hint:`${this.badges.includes('moon') ? '✓' : '○'} Moon   · Recommended Lv. 26+` },
       { title:'Tides & Sparks', desc:'Defeat Marina in Tidecrest and Volt in Stormwatch.', hint:`${this.badges.includes('tide') ? '✓' : '○'} Tide   ${this.badges.includes('spark') ? '✓' : '○'} Spark` },
       { title:'The Bedrock Trial', desc:'Defeat Terra at the Dunebloom Gym.', hint:'Recommended Lv. 42+' },
-      { title:'Champion of the Pokéverse', desc:'Climb Champion Tower and defeat Aster.', hint:'All six badges required.' },
-      { title:'Pokéverse Champion', desc:'The world is yours. Complete your Pokédex and hunt the mythic rifts!', hint:`${this.caught.size}/1025 caught` },
+      { title:'The Iron Will', desc:'Defeat Magnus at the Ironhold Gym.', hint:`${this.badges.includes('iron') ? '✓' : '○'} Iron   · Recommended Lv. 46+` },
+      { title:'Champion of the Pokéverse', desc:'Climb Champion Tower and defeat Aster.', hint:'All eight badges required.' },
+      { title:'Master League', desc:'Defeat League Master Kael beside Champion Tower.', hint:'The final battle. Recommended Lv. 60+' },
+      { title:'Pokéverse Legend', desc:'The world is yours. Complete your Pokédex and hunt the mythic rifts!', hint:`${this.caught.size}/1025 caught` },
     ]
     return steps[this.questStep]
   }
@@ -209,7 +216,7 @@ export class GameState {
     this.seed = seed || (Math.floor(Math.random() * 1e9) + 1)
     this.party = []; this.box = []; this.bag = { 'poke-ball': 10, 'potion': 5, 'oran-berry': 2 }
     this.seen = new Set(); this.caught = new Set(); this.badges = []
-    this.money = 3000; this.starter = starterId; this.champion = false
+    this.money = 3000; this.starter = starterId; this.champion = false; this.leagueMaster = false
     this.pos = { x: 96.5, y: 105.5 }; this.dir = 'up'
     this.clock = 8 * 60 + 20; this.playTime = 0; this.started = true
     this.visitedTowns = ['willowbrook']; this.sideClaims = []
@@ -280,7 +287,7 @@ export class GameState {
       name: this.name, playerId: this.playerId, colors: this.colors, seed: this.seed,
       party: this.party, box: this.box, bag: this.bag, seen: [...this.seen], caught: [...this.caught],
       badges: this.badges, money: this.money, starter: this.starter, pos: this.pos, dir: this.dir,
-      clock: this.clock, playTime: this.playTime, started: this.started, champion: this.champion,
+      clock: this.clock, playTime: this.playTime, started: this.started, champion: this.champion, leagueMaster: this.leagueMaster,
       lastTown: this.lastTown, visitedTowns: this.visitedTowns, sideClaims: this.sideClaims,
       settings: this.settings, stats: this.stats, tutorialStep: this.tutorialStep, weather: this.weather,
     }
@@ -308,7 +315,7 @@ export class GameState {
         name: s.name, playerId: s.playerId || this.playerId, colors: { ...this.colors, ...s.colors }, seed: s.seed,
         party: s.party || [], box: s.box || [], bag: s.bag || {}, badges: s.badges || [], money: s.money || 0,
         starter: s.starter, pos: s.pos || this.pos, dir: s.dir || 'down', clock: s.clock ?? this.clock,
-        playTime: s.playTime || 0, started: true, champion: !!s.champion, lastTown: s.lastTown || 'willowbrook',
+        playTime: s.playTime || 0, started: true, champion: !!s.champion, leagueMaster: !!s.leagueMaster, lastTown: s.lastTown || 'willowbrook',
         visitedTowns: s.visitedTowns || ['willowbrook'], sideClaims: s.sideClaims || [],
         settings: { ...this.settings, ...s.settings, controls: normalizeControls(s.settings?.controls) },
         stats: { ...this.stats, ...s.stats }, tutorialStep: s.tutorialStep || 0, weather: s.weather || this.weather,

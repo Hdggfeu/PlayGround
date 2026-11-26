@@ -7,7 +7,7 @@ import { audio } from './core/audio.js'
 import { initI18n, t, tr, getLang, setLang, timeLabel, onLangChange } from './core/i18n.js'
 import { actionFor, isHeld, normalizeControls, cloneControls } from './core/controls.js'
 import { POKEDEX, DEX_BY_ID } from './data/pokedex.js'
-import { GYMS, CHAMPION } from './data/gyms.js'
+import { GYMS, CHAMPION, MASTER } from './data/gyms.js'
 import { TYPE_COLORS, movesFor, expForLevel } from './data/moves.js'
 import { createMon, maxHp, healMon } from './core/state.js'
 import { clamp, lerp, hash2, mulberry32, timeString, fmt } from './core/utils.js'
@@ -105,7 +105,14 @@ class App {
     this.drawTitleFireflies()
     requestAnimationFrame((t) => this.loop(t))
     this.checkSave()
-    onLangChange(() => this.updateTitleLanguage())
+    onLangChange(() => {
+      this.updateTitleLanguage()
+      if (this.ui) {
+        this.ui.refreshControlHints()
+        this.ui.refreshHUD()
+        this.ui.updateQuestCard()
+      }
+    })
   }
 
   esc (s) { return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
@@ -339,11 +346,11 @@ class App {
 
   introDialogue () {
     this.ui.showDialogue({
-      name: 'Professor Willow', colors: { shirt:'#8b6fd6', hair:'#e8e8ee', skin:'#f0c8a0' },
-      text: `Welcome to the Pokéverse, ${this.state.name}! This whole world is alive — every one of the 1,025 Pokémon from all nine generations lives somewhere out there. Choose your path, catch what calls to you, and when you're ready, take on the six Gyms and Champion Aster.`,
+      name: 'Professor Black', colors: { shirt:'#232a3d', hair:'#e8e8ee', skin:'#c98f65' },
+      text: `Welcome to the Pokéverse, ${this.state.name}! This whole world is alive — every one of the 1,025 Pokémon from all nine generations lives somewhere out there. Choose your path, catch what calls to you, and when you're ready, take on the eight Gyms, Champion Aster, and the Master League.`,
       choices: [
         { label: 'I\'m ready!', primary: true, action: () => this.tutorial() },
-        { label: 'Where should I start?', action: () => this.ui.showDialogue({ name: 'Professor Willow', colors: { shirt:'#8b6fd6', hair:'#e8e8ee', skin:'#f0c8a0' }, text: 'Head south from the plaza into the tall grass to meet your first wild Pokémon. Catch three to fill a page of your Pokédex, then follow the west road to Goldleaf Village and challenge Rosa. Take your time — the world is yours.', choices: [{ label: 'Thanks!', primary: true, action: () => this.tutorial() }] }) },
+        { label: 'Where should I start?', action: () => this.ui.showDialogue({ name: 'Professor Black', colors: { shirt:'#232a3d', hair:'#e8e8ee', skin:'#c98f65' }, text: 'Head south from the plaza into the tall grass to meet your first wild Pokémon. Catch three to fill a page of your Pokédex, then follow the west road to Goldleaf Village and challenge Rosa. Take your time — the world is yours.', choices: [{ label: 'Thanks!', primary: true, action: () => this.tutorial() }] }) },
       ],
     })
   }
@@ -685,7 +692,7 @@ class App {
     }
     if (it.kind === 'door') {
       const b = it.building
-      text = b.type === 'center' ? 'Enter Pokémon Center' : b.type === 'mart' ? 'Enter Poké Mart' : b.type === 'gym' ? `Challenge ${b.leader} Gym` : b.type === 'tower' ? 'Enter Champion Tower' : b.type === 'lab' ? 'Enter Willow Lab' : 'Knock on the door'
+      text = b.type === 'center' ? 'Enter Pokémon Center' : b.type === 'mart' ? 'Enter Poké Mart' : b.type === 'gym' ? `Challenge ${b.leader} Gym` : b.type === 'tower' ? 'Enter Champion Tower' : b.type === 'lab' ? 'Enter Black Lab' : 'Knock on the door'
     }
     if (it.kind === 'sign') text = 'Read sign'
     if (it.kind === 'chest') text = 'Open chest'
@@ -722,11 +729,12 @@ class App {
     if (npc.role === 'professor') {
       const q = st.quest
       const extra = st.caught.size >= 3 ? 'Your Pokédex is coming along beautifully! Keep catching — every species tells a story.' : 'Start with three catches. The tall grass south of town is full of friendly Pokémon.'
-      this.ui.showDialogue({ name: 'Prof. Willow', colors: npc.colors, text: `${q.desc} ${extra}`, choices: [{ label: 'Show Pokédex', action: () => this.ui.openDex() }, { label: 'I\'ll be going' }] })
+      this.ui.showDialogue({ name: 'Prof. Black', colors: npc.colors, text: `${q.desc} ${extra}`, choices: [{ label: 'Show Pokédex', action: () => this.ui.openDex() }, { label: 'I\'ll be going' }] })
       return
     }
     if (npc.role === 'leader') return this.challengeGym(npc.gym)
     if (npc.role === 'champion') return this.challengeChampion()
+    if (npc.role === 'master') return this.challengeMaster()
     if (npc.role === 'trainer') return this.startTrainerBattle(npc)
     const lines = npc.lines || ['What a beautiful day in the Pokéverse!']
     this.ui.showDialogue({ name: npc.name, colors: npc.colors, text: lines[Math.floor(Math.random() * lines.length)] })
@@ -741,7 +749,7 @@ class App {
     }
     if (b.type === 'mart') return this.ui.openShop()
     if (b.type === 'lab') {
-      this.ui.showDialogue({ name: 'Willow Lab', colors: { shirt:'#8b6fd6', hair:'#e8e8ee', skin:'#f0c8a0' }, text: `The lab hums with machines mapping every habitat in the region. Professor Willow looks up and smiles. "${st.caught.size} species recorded so far — the Pokéverse is vast, isn't it?"`, choices: [{ label: 'View Pokédex', action: () => this.ui.openDex() }, { label: 'Leave' }] })
+      this.ui.showDialogue({ name: 'Black Lab', colors: { shirt:'#232a3d', hair:'#e8e8ee', skin:'#c98f65' }, text: `The lab hums with machines mapping every habitat in the region. Professor Black looks up and smiles. "${st.caught.size} species recorded so far — the Pokéverse is vast, isn't it?"`, choices: [{ label: 'View Pokédex', action: () => this.ui.openDex() }, { label: 'Leave' }] })
       return
     }
     if (b.type === 'tower') return this.challengeChampion()
@@ -778,11 +786,24 @@ class App {
       this.ui.showDialogue({ name: 'Aster', colors: { shirt:'#d4af37', hair:'#2b2b38', skin:'#c98f65' }, text: 'The Champion\'s seat suits you. The world is still full of Pokémon to meet — go write the rest of your story.', choices: [{ label: 'I will' }] })
       return
     }
-    if (st.badges.length < 6) {
-      this.ui.showDialogue({ name: 'Tower Guardian', colors: { shirt:'#d4af37', hair:'#2b2b38', skin:'#c98f65' }, text: `The Champion Tower recognizes strength. You carry ${st.badges.length} of 6 badges. Return when the full set is yours.`, choices: [{ label: 'Understood' }] })
+    if (st.badges.length < 8) {
+      this.ui.showDialogue({ name: 'Tower Guardian', colors: { shirt:'#d4af37', hair:'#2b2b38', skin:'#c98f65' }, text: `The Champion Tower recognizes strength. You carry ${st.badges.length} of 8 badges. Return when the full set is yours.`, choices: [{ label: 'Understood' }] })
       return
     }
     this.ui.showDialogue({ name: 'Champion Aster', colors: { shirt:'#d4af37', hair:'#2b2b38', skin:'#c98f65' }, text: CHAMPION.intro, choices: [{ label: 'Challenge the Champion!', primary: true, action: () => this.startChampionBattle() }, { label: 'I need to prepare' }] })
+  }
+
+  challengeMaster () {
+    const st = this.state
+    if (!st.champion) {
+      this.ui.showDialogue({ name: 'League Master Kael', colors: { shirt:'#7ee0c8', hair:'#1f2b3a', skin:'#c98f65' }, text: 'The Master League opens only to a Champion. Defeat Aster first, then return to me.', choices: [{ label: 'Understood' }] })
+      return
+    }
+    if (st.leagueMaster) {
+      this.ui.showDialogue({ name: 'League Master Kael', colors: { shirt:'#7ee0c8', hair:'#1f2b3a', skin:'#c98f65' }, text: 'You are the League Master now. There is no wall left to climb — only the endless world of Pokémon to explore.', choices: [{ label: 'Thank you, Master' }] })
+      return
+    }
+    this.ui.showDialogue({ name: 'League Master Kael', colors: { shirt:'#7ee0c8', hair:'#1f2b3a', skin:'#c98f65' }, text: MASTER.intro, choices: [{ label: 'Challenge the League Master!', primary: true, action: () => this.startMasterBattle() }, { label: 'I need to prepare' }] })
   }
 
   // ---------------- battles ----------------
@@ -832,7 +853,8 @@ class App {
     this.inBattle = true
     this.ui.hideInteract()
     const party = gym.party.map(p => createMon(p.n, p.level))
-    const biome = this.world.biomeAt(gym.town === 'frosthollow' ? 92 : 50, gym.town === 'frosthollow' ? 26 : 50)
+    const town = this.world.towns.find(t => t.id === gym.town)
+    const biome = this.world.biomeAt(town?.x || 96, town?.y || 96)
     this.battle.start({
       type: 'gym', enemyParty: party, biome, trainerName: `${gym.leader} (${gym.type} Gym)`,
       intro: gym.intro, reward: gym.reward, items: gym.items, badgeId: gym.badge,
@@ -852,6 +874,18 @@ class App {
     this.pendingRift = null
   }
 
+  startMasterBattle () {
+    if (!this.ensureBattleReady() || this.inBattle) return
+    this.inBattle = true
+    this.ui.hideInteract()
+    const party = MASTER.party.map(p => createMon(p.n, p.level))
+    this.battle.start({
+      type: 'master', enemyParty: party, biome: 'town', trainerName: 'League Master Kael',
+      intro: MASTER.intro, reward: MASTER.reward, items: MASTER.items,
+    })
+    this.pendingRift = null
+  }
+
   endBattle (result) {
     this.inBattle = false
     this.encounterCooldown = 2.4
@@ -866,9 +900,13 @@ class App {
     }
     if (result.result === 'win') {
       const step = this.state.questStep
-      if (step === 2 && this.state.badges.includes('bloom')) this.ui.toast('The road east and north opens. Frost and Blaze await!', '◆', 'gold')
-      if (step === 3) this.ui.toast('Two more badges down. Tidecrest and Stormwatch are calling!', '◆', 'gold')
-      if (step === 6 && this.state.champion) this.ui.toast('You are the Champion of the Pokéverse!', '🏆', 'gold')
+      if (step === 3) this.ui.toast('Frost and Blaze await in the north and east!', '◆', 'gold')
+      if (step === 4) this.ui.toast('Moonvale calls — the Moon Badge awaits!', '◆', 'gold')
+      if (step === 5) this.ui.toast('Tidecrest and Stormwatch are calling!', '◆', 'gold')
+      if (step === 6) this.ui.toast('Dunebloom and the Bedrock Trial await!', '◆', 'gold')
+      if (step === 7) this.ui.toast('Ironhold, the final Gym, awaits!', '◆', 'gold')
+      if (step === 8 && this.state.badges.length >= 8) this.ui.toast('All eight badges! Champion Tower awaits.', '◆', 'gold')
+      if (step === 9 && this.state.champion) this.ui.toast('Champion! League Master Kael awaits outside the tower.', '◆', 'gold')
     }
     this.state.save()
     this.seedWilds()
@@ -1010,7 +1048,7 @@ class App {
     drawTrainer(ctx, px, py, 'down', 0, n.colors || { shirt:'#8b6fd6' }, { time: this.time + n.x, scale: 1.4 })
     const d = Math.hypot(n.x + .5 - this.player.x / TILE, n.y + .5 - this.player.y / TILE)
     if (d < 7) {
-      const label = n.role === 'leader' ? `${n.name} · Gym Leader` : n.role === 'nurse' ? 'Nurse Joy' : n.role === 'clerk' ? 'Poké Mart' : n.role === 'professor' ? 'Prof. Willow' : n.role === 'champion' ? 'Aster · Champion' : n.name
+      const label = n.role === 'leader' ? `${n.name} · Gym Leader` : n.role === 'nurse' ? 'Nurse Joy' : n.role === 'clerk' ? 'Poké Mart' : n.role === 'professor' ? 'Prof. Black' : n.role === 'champion' ? 'Aster · Champion' : n.role === 'master' ? 'Kael · League Master' : n.name
       this.tag(ctx, label, px, py - 40, n.role === 'leader' ? '#f4c95d' : '#e8eefc', n.role === 'leader')
     }
   }
